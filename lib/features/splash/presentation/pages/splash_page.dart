@@ -5,6 +5,23 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(image: 
+                  AssetImage('assets/kajanilogo.png'),
+                  fit: BoxFit.contain
+                ),
+                )
+              )
+            ],
+          ),
+        )),
+    );
   }
 }
