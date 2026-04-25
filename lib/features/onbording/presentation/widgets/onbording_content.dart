@@ -47,7 +47,7 @@ class OnbordingContent extends StatelessWidget {
                     size: 40,
                   ),
                 ),
-                const SizedBox(height: 25),
+                const SizedBox(height: 10),
 
                 // Title
                 Text(
@@ -59,7 +59,7 @@ class OnbordingContent extends StatelessWidget {
                     color: Color(0xff142725),
                   ),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 8),
 
                 // Description
                 Text(

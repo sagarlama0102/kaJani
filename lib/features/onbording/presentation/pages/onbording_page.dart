@@ -35,21 +35,21 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
       title: "Discover Plans",
       description: "Explore events and activites \nhappening around you",
       imagePath: 'assets/images/kajanionboardingpage1.png',
-      icon: Icons.home_work,
+      icon: Icons.explore_outlined,
     ),
     OnboardingPageData(
       title: "Connect with People",
       description:
           "Share interests and make \nreal connection with like-minded people",
       imagePath: 'assets/images/kajanionboardingpage2.png',
-      icon: Icons.security,
+      icon: Icons.groups_outlined,
     ),
     OnboardingPageData(
       title: "Join & Experience",
       description:
           "Join plans and create memories \nand enjoy real life experience together",
       imagePath: 'assets/images/kajanionboardingpage3.png',
-      icon: Icons.add_business,
+      icon: Icons.celebration_outlined,
     ),
   ];
 
@@ -67,79 +67,82 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            itemCount: _pages.length,
-            itemBuilder: (context, index) {
-              return OnbordingContent(item: _pages[index]);
-            },
-          ),
-
-          Positioned(
-            top: 50,
-            right: 20,
-            child: TextButton(
-              onPressed: _navigateToLogin,
-              child: Text("Skip", style: TextStyle(color: Colors.black45)),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              itemCount: _pages.length,
+              itemBuilder: (context, index) {
+                return OnbordingContent(item: _pages[index]);
+              },
             ),
-          ),
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                // Your custom dots widget
-                PageIndicator(
-                  itemCount: _pages.length,
-                  currentPage: _currentPage,
-                  activeColor: const Color(0xff99DAB3), // Your brand green
-                ),
-                const SizedBox(height: 30),
-
-                // Next / Get Started Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff142725),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+        
+            Positioned(
+              top: 10,
+              right: 20,
+              child: TextButton(
+                onPressed: _navigateToLogin,
+                child: Text("Skip", style: TextStyle(color: Colors.black45)),
+              ),
+            ),
+            Positioned(
+              bottom: 50,
+              left: 0,
+              right: 0,
+              
+              child: Column(
+                children: [
+                  // Your custom dots widget
+                  PageIndicator(
+                    itemCount: _pages.length,
+                    currentPage: _currentPage,
+                    activeColor: const Color(0xff99DAB3), // Your brand green
+                  ),
+                  const SizedBox(height: 20),
+        
+                  // Next / Get Started Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff142725),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      onPressed: () {
-                        if (_currentPage == _pages.length - 1) {
-                          _navigateToLogin();
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                      child: Text(
-                        _currentPage == _pages.length - 1
-                            ? "GET STARTED"
-                            : "NEXT",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        onPressed: () {
+                          if (_currentPage == _pages.length - 1) {
+                            _navigateToLogin();
+                          } else {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Text(
+                          _currentPage == _pages.length - 1
+                              ? "GET STARTED"
+                              : "NEXT",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
