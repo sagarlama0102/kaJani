@@ -18,13 +18,14 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation; 
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _setupAnimation();
     _startAnimations();
+    _navigateToNext();
   }
 
   void _setupAnimation() {
@@ -43,13 +44,15 @@ class _SplashPageState extends ConsumerState<SplashPage>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
 
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
@@ -63,24 +66,33 @@ class _SplashPageState extends ConsumerState<SplashPage>
     _slideController.forward();
   }
 
-//     Future<void> _navigateToNext() async {
-//   await Future.delayed(const Duration(seconds: 3));
-//   if (!mounted) return;
+  //     Future<void> _navigateToNext() async {
+  //   await Future.delayed(const Duration(seconds: 3));
+  //   if (!mounted) return;
 
-//   final userSessionService = ref.read(userSessionServiceProvider);
-//   final isLoggedIn = userSessionService.isLoggedIn();
+  //   final userSessionService = ref.read(userSessionServiceProvider);
+  //   final isLoggedIn = userSessionService.isLoggedIn();
 
-//   if (isLoggedIn) {
-    
-//     await ref.read(authViewModelProvider.notifier).getCurrentUser();
+  //   if (isLoggedIn) {
 
-//     if (mounted) {
-//       AppRoutes.pushReplacement(context, const BottomScreenLayout());
-//     }
-//   } else {
-//     AppRoutes.pushReplacement(context, const OnbordingPage());
-//   }
-// }
+  //     await ref.read(authViewModelProvider.notifier).getCurrentUser();
+
+  //     if (mounted) {
+  //       AppRoutes.pushReplacement(context, const BottomScreenLayout());
+  //     }
+  //   } else {
+  //     AppRoutes.pushReplacement(context, const OnbordingPage());
+  //   }
+  // }
+
+  // ================================ user isLoggedin logic na vako code to check the splash to onboarding transisiton
+
+  Future<void> _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+
+    AppRoutes.pushReplacement(context, const OnbordingPage());
+  }
 
   @override
   void dispose() {
@@ -104,10 +116,12 @@ class _SplashPageState extends ConsumerState<SplashPage>
               child: SizedBox(
                 height: 200,
                 width: 200,
+
                 child: Image.asset(
                   'assets/images/kajanilogo.png',
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.error),
                 ),
               ),
             ),

@@ -7,6 +7,7 @@ import 'package:kajani/features/onbording/presentation/widgets/page_indicator.da
 
 class OnboardingPageData {
   final String title;
+  final String description;
   final String imagePath;
   final IconData icon;
 
@@ -14,6 +15,7 @@ class OnboardingPageData {
     required this.title,
     required this.imagePath,
     required this.icon,
+    required this.description,
   });
 }
 
@@ -28,20 +30,25 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-    final List<OnboardingPageData> _pages = [
+  final List<OnboardingPageData> _pages = [
     OnboardingPageData(
-      title: "Explore events and activites \nhappening around you",
-      imagePath: 'assets/images/onboardingoneimage.png',
+      title: "Discover Plans",
+      description: "Explore events and activites \nhappening around you",
+      imagePath: 'assets/images/kajanionboardingpage1.png',
       icon: Icons.home_work,
     ),
     OnboardingPageData(
-      title: "Share interests and make \nreal connection with like-minded people",
-      imagePath: 'assets/images/onboardingtwoimage.png',
+      title: "Connect with People",
+      description:
+          "Share interests and make \nreal connection with like-minded people",
+      imagePath: 'assets/images/kajanionboardingpage2.png',
       icon: Icons.security,
     ),
     OnboardingPageData(
-      title: "Join plans and create memories \nand enjoy real life experience together",
-      imagePath: 'assets/images/onboardingthreeimage.png',
+      title: "Join & Experience",
+      description:
+          "Join plans and create memories \nand enjoy real life experience together",
+      imagePath: 'assets/images/kajanionboardingpage3.png',
       icon: Icons.add_business,
     ),
   ];
@@ -52,7 +59,7 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
     });
   }
 
-    void _navigateToLogin() {
+  void _navigateToLogin() {
     // Using your teacher's preferred routing method
     AppRoutes.pushReplacement(context, const LoginPage());
   }
