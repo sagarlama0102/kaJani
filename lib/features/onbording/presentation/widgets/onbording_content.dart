@@ -8,74 +8,82 @@ class OnbordingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // 1. Image Section (Top Half)
-        Expanded(
-          flex: 5, // Adjust this to control image height
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(100)),
-              image: DecorationImage(
-                image: AssetImage(item.imagePath),
-                fit: BoxFit.contain, // Keeps the illustration proportions
+    return Container(
+      color: Colors.black, // 
+      child: Column(
+        children: [
+          // ─── Image Section ────────────────────────────────────
+          Expanded(
+            flex: 5,
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(item.imagePath),
+                  fit: BoxFit.cover, // ✅ cover for full width image
+                  alignment: Alignment.topCenter,
+                ),
               ),
             ),
           ),
-        ),
 
-        SizedBox(height: 20),
+          // ─── Content Section ──────────────────────────────────
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // ─── Circular Icon ──────────────────────────
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Colors.white, // ✅ white circle like screenshot
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      item.icon,
+                      color: Colors.black,
+                      size: 36,
+                    ),
+                  ),
 
-        // 2. Icon and Text Section
-        Expanded(
-          flex: 3,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Column(
-              children: [
-                // Circular Icon (matches the screenshot)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xffE9F4EE), // Light green circle
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    item.icon,
-                    color: const Color(0xff537E67),
-                    size: 40,
-                  ),
-                ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 24),
 
-                // Title
-                Text(
-                  item.title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff142725),
+                  // ─── Title ──────────────────────────────────
+                  Text(
+                    item.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // ✅ white text
+                      height: 1.2,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
 
-                // Description
-                Text(
-                  item.description,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                    height: 1.5,
+                  const SizedBox(height: 12),
+
+                  // ─── Description ────────────────────────────
+                  Text(
+                    item.description,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.6), // ✅ muted white
+                      height: 1.6,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+
+          // ─── Bottom spacing for button overlap ───────────────
+          const SizedBox(height: 120),
+        ],
+      ),
     );
   }
 }

@@ -105,7 +105,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -118,7 +118,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
                 width: 200,
 
                 child: Image.asset(
-                  'assets/images/kajanilogo.png',
+                  'assets/images/kajanilogodark.png',
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.error),
