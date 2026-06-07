@@ -34,23 +34,17 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
     OnboardingPageData(
       title: "Discover Plans",
       description: "Explore events and activites \nhappening around you",
-      imagePath: 'assets/images/kajanionboardingpage1.png',
+      imagePath: 'assets/images/onboardingdarkone.png',
       icon: Icons.explore_outlined,
     ),
     OnboardingPageData(
       title: "Connect with People",
       description:
           "Share interests and make \nreal connection with like-minded people",
-      imagePath: 'assets/images/kajanionboardingpage2.png',
+      imagePath: 'assets/images/onboardingdarktwo.png',
       icon: Icons.groups_outlined,
     ),
-    OnboardingPageData(
-      title: "Join & Experience",
-      description:
-          "Join plans and create memories \nand enjoy real life experience together",
-      imagePath: 'assets/images/kajanionboardingpage3.png',
-      icon: Icons.celebration_outlined,
-    ),
+    
   ];
 
   void _onPageChanged(int index) {
@@ -84,7 +78,7 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
               right: 20,
               child: TextButton(
                 onPressed: _navigateToLogin,
-                child: Text("Skip", style: TextStyle(color: Colors.black45)),
+                child: Text("Skip", style: TextStyle(color: Colors.white)),
               ),
             ),
             Positioned(
@@ -98,7 +92,7 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
                   PageIndicator(
                     itemCount: _pages.length,
                     currentPage: _currentPage,
-                    activeColor: const Color(0xff99DAB3), // Your brand green
+                    activeColor: const Color(0xff6B4EFF), // Your brand green
                   ),
                   const SizedBox(height: 20),
         
@@ -110,7 +104,7 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
                       height: 55,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff142725),
+                          backgroundColor: const Color(0xff6B4EFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
