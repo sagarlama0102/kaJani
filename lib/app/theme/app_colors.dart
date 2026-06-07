@@ -9,7 +9,7 @@ class AppColors {
   static const Color primaryLight = Color(0xffA78BFA);   // Light purple
 
   // ─── Auth Colors ──────────────────────────────────────────────
-  static const Color authPrimary = Color(0xff142725);    // Login button (keep your existing)
+  static const Color authPrimary = Color(0xff7C3AED);    // Login button (keep your existing)
 
   // ─── Background Colors ────────────────────────────────────────
   static const Color background = Color(0xFFF8F9FA);     // Light bg

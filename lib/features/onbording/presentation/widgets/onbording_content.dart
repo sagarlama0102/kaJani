@@ -9,18 +9,20 @@ class OnbordingContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black, // 
+      color: Colors.black, //
       child: Column(
         children: [
           // ─── Image Section ────────────────────────────────────
           Expanded(
             flex: 5,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(item.imagePath),
-                  fit: BoxFit.cover, // ✅ cover for full width image
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  item.imagePath,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                   alignment: Alignment.topCenter,
                 ),
               ),
@@ -39,17 +41,13 @@ class OnbordingContent extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: const BoxDecoration(
-                      color: Colors.white, // ✅ white circle like screenshot
+                      color: Colors.white, 
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      item.icon,
-                      color: Colors.black,
-                      size: 36,
-                    ),
+                    child: Icon(item.icon, color: Colors.black, size: 36),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
                   // ─── Title ──────────────────────────────────
                   Text(
@@ -58,7 +56,7 @@ class OnbordingContent extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // ✅ white text
+                      color: Colors.white, 
                       height: 1.2,
                     ),
                   ),
@@ -71,7 +69,7 @@ class OnbordingContent extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.6), // ✅ muted white
+                      color: Colors.white.withOpacity(0.6), 
                       height: 1.6,
                     ),
                   ),
@@ -81,7 +79,7 @@ class OnbordingContent extends StatelessWidget {
           ),
 
           // ─── Bottom spacing for button overlap ───────────────
-          const SizedBox(height: 120),
+          const SizedBox(height: 100),
         ],
       ),
     );
