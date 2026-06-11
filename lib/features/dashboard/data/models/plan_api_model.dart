@@ -46,11 +46,11 @@ class PlanApiModel {
       status: json['status'] as String,
       isPublic: json['isPublic'] as bool? ?? true,
       maxMembers: json['maxMembers'] as int?,
-      // creator can be a full object (populated) or just an ID string
+
       creatorId: json['creator'] is Map
           ? (json['creator'] as Map<String, dynamic>)['_id'] as String?
           : json['creator'] as String?,
-      // members can be a list of objects (populated) or list of ID strings
+
       members: (json['members'] as List<dynamic>?)
           ?.map((e) => e is Map ? e['_id'] as String : e as String)
           .toList(),
