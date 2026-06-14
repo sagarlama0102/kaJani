@@ -91,19 +91,27 @@ class AuthViewModel extends Notifier<AuthState> {
   // ─── Google Sign In ────────────────────────────────────────────
   Future<void> signInWithGoogle() async {
     state = state.copyWith(status: AuthStatus.loading);
+  
 
     final result = await _googleSignInUsecase();
 
-    result.fold(
-      (failure) => state = state.copyWith(
+
+     result.fold(
+    (failure) {
+
+      state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
-      ),
-      (authEntity) => state = state.copyWith(
+      );
+    },
+    (authEntity) {
+ 
+      state = state.copyWith(
         status: AuthStatus.authenticated,
         authEntity: authEntity,
-      ),
-    );
+      );
+    },
+  );
   }
 
   // ─── Get Current User ──────────────────────────────────────────

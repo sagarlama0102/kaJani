@@ -56,8 +56,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     );
 
     if (response.data['success'] == true) {
-      final token = response.data['token'] as String;
-      final userJson = response.data['data'] as Map<String, dynamic>;
+  final data = response.data['data'] as Map<String, dynamic>;
+  final token = data['token'] as String;                    
+  final userJson = data['user'] as Map<String, dynamic>; 
 
       await _tokenService.saveToken(token);
       await _userSessionService.saveUserSession(
@@ -123,68 +124,79 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   }
 
   // ─── Google Sign In ─────────────────────────────────────────────
-  @override
+@override
 Future<(AuthApiModel, UserApiModel)> signInWithGoogle() async {
   try {
+
+    await GoogleSignIn.instance.signOut();
+    await FirebaseAuth.instance.signOut();
+
+
     final GoogleSignInAccount account =
         await GoogleSignIn.instance.authenticate(
       scopeHint: ['email', 'profile'],
     );
-
+  
     final GoogleSignInAuthentication googleAuth =
         await account.authentication;
     final googleIdToken = googleAuth.idToken;
+  
+
     if (googleIdToken == null) throw Exception('Failed to get Google ID token');
 
-    // 1. Sign in to Firebase first
+
     final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
     final userCredential =
         await FirebaseAuth.instance.signInWithCredential(credential);
 
-    // 2. Get Firebase ID token — this is different from Google ID token!
-    final firebaseIdToken = await userCredential.user?.getIdToken(true); // 👈 true forces refresh
+
+
+    final firebaseIdToken = await userCredential.user?.getIdToken(true);
+
+
     if (firebaseIdToken == null) throw Exception('Failed to get Firebase ID token');
 
-    print('✅ Firebase token: ${firebaseIdToken.substring(0, 20)}...');
-
-    // 3. Send Firebase token to backend
+ 
     final response = await _apiClient.post(
       ApiEndpoints.googleSignIn,
-      data: {'idToken': firebaseIdToken}, // 👈 send Firebase token not Google token
+      data: {'idToken': firebaseIdToken},
     );
 
-      print('✅ Backend response: ${response.data}');
 
-      if (response.data['success'] == true) {
+    if (response.data['success'] == true) {
       final token = response.data['token'] as String;
       final userJson = response.data['data'] as Map<String, dynamic>;
 
-        await _tokenService.saveToken(token);
-        await _userSessionService.saveUserSession(
-          userId: userJson['id'],
-          email: userJson['email'],
-          username: userJson['username'],
-          firstName: userJson['firstName'],
-          lastName: userJson['lastName'],
-          phoneNumber: userJson['phoneNumber'],
-          token: token,
-        );
+      await _tokenService.saveToken(token);
+      await _userSessionService.saveUserSession(
+        userId: userJson['id'],
+        email: userJson['email'],
+        username: userJson['username'],
+        firstName: userJson['firstName'],
+        lastName: userJson['lastName'],
+        phoneNumber: userJson['phoneNumber'],
+        token: token,
+      );
 
-        final authModel = AuthApiModel(
-          authId: userJson['id'],
-          email: userJson['email'],
-          provider: userJson['provider'],
-        );
-        final userModel = UserApiModel.fromJson(userJson);
+      final authModel = AuthApiModel(
+        authId: userJson['id'],
+        email: userJson['email'],
+        provider: userJson['provider'],
+      );
+      final userModel = UserApiModel.fromJson(userJson);
 
-        return (authModel, userModel);
-      }
-
-      throw Exception(response.data['message'] ?? 'Google sign in failed');
-    } on GoogleSignInException catch (e) {
-      throw Exception('Google sign in error: ${e.description}');
+      return (authModel, userModel);
     }
+
+    throw Exception(response.data['message'] ?? 'Google sign in failed');
+  } on GoogleSignInException catch (e) {
+
+    throw Exception('Google sign in error: ${e.description}');
+  } catch (e) {
+
+    rethrow;
   }
+}
 
   // ─── Get Current User ───────────────────────────────────────────
   @override
