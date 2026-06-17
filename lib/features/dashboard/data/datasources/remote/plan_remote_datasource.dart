@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/core/api/api_client.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
@@ -178,4 +181,24 @@ class PlanRemoteDatasource {
     }
     throw Exception(response.data['message'] ?? 'Failed to save plan');
   }
+
+  Future<String> uploadCoverImage(File image) async {
+  final fileName = image.path.split('/').last;
+  final formData = FormData.fromMap({
+    'coverImage': await MultipartFile.fromFile(
+      image.path,
+      filename: fileName,
+    ),
+  });
+
+  final response = await _apiClient.uploadFile(
+    ApiEndpoints.uploadPlanCover,
+    formData: formData,
+  );
+
+  if (response.data['success'] == true) {
+    return response.data['data']['coverImage'] as String;
+  }
+  throw Exception(response.data['message'] ?? 'Failed to upload image');
+}
 }

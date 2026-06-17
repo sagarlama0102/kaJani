@@ -8,6 +8,8 @@ import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.da
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 
+import 'package:kajani/core/api/api_endpoints.dart';
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -179,7 +181,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             child: plan.coverImage != null
                 ? Image.network(
-                    plan.coverImage!,
+                       '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                     width: 56,
                     height: double.infinity,
                     fit: BoxFit.cover,
@@ -492,7 +494,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             child: plan.coverImage != null
                 ? Image.network(
-                    plan.coverImage!,
+                    '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                     width: 90,
                     height: 90,
                     fit: BoxFit.cover,

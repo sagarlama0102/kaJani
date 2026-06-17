@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kajani/core/api/api_client.dart';
+import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,31 +224,65 @@ void _pickCoverImage() {
   }
 
   // ─── Create Plan ──────────────────────────────────────────────────
-  Future<void> _handleCreate() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedDate.isEmpty) {
-      SnackbarUtils.showError(context, 'Please select a date');
-      return;
-    }
-    if (_selectedTime.isEmpty) {
-      SnackbarUtils.showError(context, 'Please select a time');
-      return;
-    }
-
-    await ref.read(planViewModelProvider.notifier).createPlan(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          category: _selectedCategory,
-          location: _locationController.text.trim(),
-          date: _selectedDate,
-          time: _selectedTime,
-          isPublic: _isPublic,
-          maxMembers: _maxMembersController.text.isEmpty
-              ? null
-              : int.tryParse(_maxMembersController.text),
-        );
+ Future<void> _handleCreate() async {
+  if (!_formKey.currentState!.validate()) return;
+  if (_selectedDate.isEmpty) {
+    SnackbarUtils.showError(context, 'Please select a date');
+    return;
   }
+  if (_selectedTime.isEmpty) {
+    SnackbarUtils.showError(context, 'Please select a time');
+    return;
+  }
+
+  String? coverImageUrl;
+
+  print('🖼️ Cover image file: $_coverImage');
+
+  // 1. Upload image first if selected
+  if (_coverImage != null) {
+    print('📤 Uploading image...');
+    try {
+      final fileName = _coverImage!.path.split('/').last;
+      final formData = FormData.fromMap({
+        'coverImage': await MultipartFile.fromFile(
+          _coverImage!.path,
+          filename: fileName,
+        ),
+      });
+      // upload directly via api client
+      final uploadResponse = await ref
+          .read(apiClientProvider)
+          .uploadFile(
+            ApiEndpoints.uploadPlanCover,
+            formData: formData,
+          );
+          print('📥 Upload response: ${uploadResponse.data}');
+      if (uploadResponse.data['success'] == true) {
+        coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
+      }
+    } catch (e) {
+      // if upload fails, create plan without image
+      print('Image upload failed: $e');
+    }
+  }
+  print('🎯 Final coverImageUrl before creating plan: $coverImageUrl');
+  // 2. Create plan with image URL
+  await ref.read(planViewModelProvider.notifier).createPlan(
+    title: _titleController.text.trim(),
+    description: _descriptionController.text.trim(),
+    category: _selectedCategory,
+    location: _locationController.text.trim(),
+    date: _selectedDate,
+    time: _selectedTime,
+    isPublic: _isPublic,
+    maxMembers: _maxMembersController.text.isEmpty
+        ? null
+        : int.tryParse(_maxMembersController.text),
+    coverImage: coverImageUrl, // 👈 pass the uploaded URL
+  );
+}
+
 
   // ─── Input decoration ─────────────────────────────────────────────
   InputDecoration _inputDecoration({
