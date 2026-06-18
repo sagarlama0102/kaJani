@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kajani/core/api/api_client.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
+import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,13 +12,17 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
+import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 
 
 class CreatePlanPage extends ConsumerStatefulWidget {
-  const CreatePlanPage({super.key});
+  final PlanEntity? existingPlan; 
+  const CreatePlanPage({super.key, this.existingPlan});
 
   @override
   ConsumerState<CreatePlanPage> createState() => _CreatePlanPageState();
+
+
 }
 
 class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
@@ -33,6 +38,24 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   String _selectedDate = '';
   String _selectedTime = '';
   bool _isPublic = true;
+
+    @override
+void initState() {
+  super.initState();
+  
+  // 👈 if editing, pre-fill all fields
+  if (widget.existingPlan != null) {
+    final plan = widget.existingPlan!;
+    _titleController.text = plan.title;
+    _descriptionController.text = plan.description;
+    _locationController.text = plan.location;
+    _maxMembersController.text = plan.maxMembers?.toString() ?? '';
+    _selectedCategory = plan.category;
+    _selectedDate = plan.date;
+    _selectedTime = plan.time;
+    _isPublic = plan.isPublic;
+  }
+}
 
   final List<Map<String, String>> _categories = [
     {'value': 'social', 'label': 'Social'},
@@ -237,11 +260,9 @@ void _pickCoverImage() {
 
   String? coverImageUrl;
 
-  print('🖼️ Cover image file: $_coverImage');
 
   // 1. Upload image first if selected
   if (_coverImage != null) {
-    print('📤 Uploading image...');
     try {
       final fileName = _coverImage!.path.split('/').last;
       final formData = FormData.fromMap({
@@ -257,7 +278,7 @@ void _pickCoverImage() {
             ApiEndpoints.uploadPlanCover,
             formData: formData,
           );
-          print('📥 Upload response: ${uploadResponse.data}');
+
       if (uploadResponse.data['success'] == true) {
         coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
       }
@@ -266,8 +287,27 @@ void _pickCoverImage() {
       print('Image upload failed: $e');
     }
   }
-  print('🎯 Final coverImageUrl before creating plan: $coverImageUrl');
-  // 2. Create plan with image URL
+  final isEditMode = widget.existingPlan != null;
+
+  if (isEditMode){
+     final updateData = {
+      'title': _titleController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'category': _selectedCategory,
+      'location': _locationController.text.trim(),
+      'date': _selectedDate,
+      'time': _selectedTime,
+      'isPublic': _isPublic,
+      if (_maxMembersController.text.isNotEmpty)
+        'maxMembers': int.tryParse(_maxMembersController.text),
+      if (coverImageUrl != null) 'coverImage': coverImageUrl, // only if changed
+    };
+     await ref.read(planViewModelProvider.notifier).updatePlan(
+          widget.existingPlan!.planId!,
+          updateData,
+        );
+  }else{
+    // 2. Create plan with image URL
   await ref.read(planViewModelProvider.notifier).createPlan(
     title: _titleController.text.trim(),
     description: _descriptionController.text.trim(),
@@ -279,8 +319,11 @@ void _pickCoverImage() {
     maxMembers: _maxMembersController.text.isEmpty
         ? null
         : int.tryParse(_maxMembersController.text),
-    coverImage: coverImageUrl, // 👈 pass the uploaded URL
+    coverImage: coverImageUrl, 
   );
+  }
+
+  
 }
 
 
@@ -319,14 +362,19 @@ void _pickCoverImage() {
     final planState = ref.watch(planViewModelProvider);
 
     ref.listen<PlanState>(planViewModelProvider, (previous, next) {
-      if (next.status == PlanStatus.created) {
-        SnackbarUtils.showSuccess(context, 'Activity created successfully!');
-        AppRoutes.pop(context);
-      } else if (next.status == PlanStatus.error && next.errorMessage != null) {
-        SnackbarUtils.showError(context, next.errorMessage!);
-        ref.read(planViewModelProvider.notifier).resetError();
-      }
-    });
+  if (next.status == PlanStatus.created || next.status == PlanStatus.updated) {
+    SnackbarUtils.showSuccess(
+      context,
+      widget.existingPlan != null
+          ? 'Activity updated successfully!'
+          : 'Activity created successfully!',
+    );
+    AppRoutes.pop(context);
+  } else if (next.status == PlanStatus.error && next.errorMessage != null) {
+    SnackbarUtils.showError(context, next.errorMessage!);
+    ref.read(planViewModelProvider.notifier).resetError();
+  }
+});
 
     return Scaffold(
       backgroundColor: const Color(0xff0F0F0F),

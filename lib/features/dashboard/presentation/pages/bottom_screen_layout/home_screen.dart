@@ -5,6 +5,7 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
+import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 
@@ -166,44 +167,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── Group Card ───────────────────────────────────────────────────
   Widget _buildGroupCard(PlanEntity plan) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xff1A1A2E),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
-            child: plan.coverImage != null
-                ? Image.network(
-                       '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                    width: 56,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
-                  )
-                : _buildPlaceholderImage(),
-          ),
-          const SizedBox(width: 8),
-          // Title
-          Expanded(
-            child: Text(
-              plan.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+    return GestureDetector(
+      onTap: () {
+        AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xff1A1A2E),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              child: plan.coverImage != null
+                  ? Image.network(
+                      '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                      width: 56,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
+                    )
+                  : _buildPlaceholderImage(),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            // Title
+            Expanded(
+              child: Text(
+                plan.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -431,78 +437,83 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── Event Card ───────────────────────────────────────────────────
   Widget _buildEventCard(PlanEntity plan) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ─── Event Info ─────────────────────────────────────────
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  plan.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: (){
+        AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Event Info ─────────────────────────────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    plan.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${plan.date} • ${plan.time}',
-                  style: TextStyle(color: AppColors.primary, fontSize: 12),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  plan.location,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 12,
+                  const SizedBox(height: 6),
+                  Text(
+                    '${plan.date} • ${plan.time}',
+                    style: TextStyle(color: AppColors.primary, fontSize: 12),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                // Members count
-                Row(
-                  children: [
-                    Icon(
-                      Icons.people_outline,
+                  const SizedBox(height: 4),
+                  Text(
+                    plan.location,
+                    style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
-                      size: 16,
+                      fontSize: 12,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${plan.members?.length ?? 0} going',
-                      style: TextStyle(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  // Members count
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.people_outline,
                         color: Colors.white.withOpacity(0.5),
-                        fontSize: 12,
+                        size: 16,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '${plan.members?.length ?? 0} going',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // ─── Cover Image ────────────────────────────────────────
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: plan.coverImage != null
-                ? Image.network(
-                    '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                    width: 90,
-                    height: 90,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildEventPlaceholder(),
-                  )
-                : _buildEventPlaceholder(),
-          ),
-        ],
+      
+            const SizedBox(width: 12),
+      
+            // ─── Cover Image ────────────────────────────────────────
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: plan.coverImage != null
+                  ? Image.network(
+                      '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildEventPlaceholder(),
+                    )
+                  : _buildEventPlaceholder(),
+            ),
+          ],
+        ),
       ),
     );
   }
