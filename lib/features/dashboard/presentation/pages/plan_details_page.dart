@@ -66,7 +66,15 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   Future<void> _handleSave() async {
-    await ref.read(planViewModelProvider.notifier).toggleSavePlan(widget.planId);
+    await ref
+        .read(planViewModelProvider.notifier)
+        .toggleSavePlan(widget.planId);
+    final isSaved = ref.read(planViewModelProvider).isSaved;
+    if (isSaved == true) {
+      SnackbarUtils.showSuccess(context, 'Plan saved!');
+    } else if (isSaved == false) {
+      SnackbarUtils.showSuccess(context, 'Plan removed from saved');
+    }
   }
 
   @override
@@ -152,13 +160,14 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                                 icon: Icons.arrow_back_ios_new,
                                 onTap: () => AppRoutes.pop(context),
                               ),
-                              if (!isCreator)
-                                _circleIconButton(
-                                  icon: plan.savedBy?.contains(currentUserId) ?? false
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  onTap: _handleSave,
-                                ),
+                              _circleIconButton(
+                                icon:
+                                    plan.savedBy?.contains(currentUserId) ??
+                                        false
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                onTap: _handleSave,
+                              ),
                             ],
                           ),
                         ),
@@ -298,16 +307,22 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () async {
-              await AppRoutes.push(
-                context,
-                CreatePlanPage(existingPlan: plan),
-              );
-              ref.read(planViewModelProvider.notifier).getPlanById(widget.planId);
+              await AppRoutes.push(context, CreatePlanPage(existingPlan: plan));
+              ref
+                  .read(planViewModelProvider.notifier)
+                  .getPlanById(widget.planId);
             },
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primary, size: 18),
+            icon: const Icon(
+              Icons.edit_outlined,
+              color: AppColors.primary,
+              size: 18,
+            ),
             label: const Text(
               'Edit',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.primary),
@@ -323,10 +338,17 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _handleDelete(context),
-            icon: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.delete_outline,
+              color: Colors.white,
+              size: 18,
+            ),
             label: const Text(
               'Delete',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -344,7 +366,8 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
   // ─── Joiner Actions (Join / Leave) ────────────────────────────────
   Widget _buildJoinerActions(PlanEntity plan, bool isMember) {
-    final isFull = plan.maxMembers != null &&
+    final isFull =
+        plan.maxMembers != null &&
         (plan.members?.length ?? 0) >= plan.maxMembers!;
 
     return Row(
@@ -352,7 +375,9 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         // Price/status label (left side, like "Free" in reference)
         Expanded(
           child: Text(
-            isMember ? 'You\'re going' : (isFull ? 'Plan full' : 'Open to join'),
+            isMember
+                ? 'You\'re going'
+                : (isFull ? 'Plan full' : 'Open to join'),
             style: TextStyle(
               color: Colors.white.withOpacity(0.7),
               fontSize: 14,
@@ -365,11 +390,11 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
           width: 160,
           height: 50,
           child: ElevatedButton(
-            onPressed: isMember
-                ? _handleLeave
-                : (isFull ? null : _handleJoin),
+            onPressed: isMember ? _handleLeave : (isFull ? null : _handleJoin),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isMember ? const Color(0xff1A1A2E) : AppColors.primary,
+              backgroundColor: isMember
+                  ? const Color(0xff1A1A2E)
+                  : AppColors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(25),
                 side: isMember
@@ -393,7 +418,10 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   // ─── Helper Widgets ───────────────────────────────────────────────
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
