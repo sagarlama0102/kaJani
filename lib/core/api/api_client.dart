@@ -28,7 +28,6 @@ class ApiClient {
       ),
     );
 
-    // ✅ pass tokenService to interceptor
     _dio.interceptors.add(_AuthInterceptor(_tokenService));
 
     if (kDebugMode) {
@@ -121,10 +120,13 @@ class ApiClient {
     Options? options,
     ProgressCallback? onSendProgress,
   }) async {
-    return _dio.put(
+    return _dio.post(
       path,
       data: formData,
-      options: options,
+      options: Options(
+      contentType: 'multipart/form-data',
+      headers: options?.headers,
+    ),
       onSendProgress: onSendProgress,
     );
   }

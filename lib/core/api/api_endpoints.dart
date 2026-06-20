@@ -14,4 +14,11 @@ class ApiEndpoints {
   static const String whoAmI = 'auth/whoami';
   static const String userUploadPhoto = 'auth/update-profile';
 
+  static const String getAllPlans = 'plans';
+  static const String myPlans = 'plans/user/my-plans';
+  static const String joinedPlans = 'plans/user/joined';
+  static const String savedPlans = 'plans/user/saved';
+
+  static const String uploadPlanCover = 'plans/upload-cover';
+
 }

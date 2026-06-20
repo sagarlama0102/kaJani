@@ -89,6 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authState = ref.watch(authViewModelProvider);
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+        print('🔔 State changed: ${next.status}');
       if (next.status == AuthStatus.authenticated) {
         AppRoutes.pushReplacement(context, const BottomScreenLayout());
       } else if (next.status == AuthStatus.error &&

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/chat_screen.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/explore_screen.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/home_screen.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/notification_screen.dart';
 
 class BottomScreenLayout extends StatefulWidget {
   const BottomScreenLayout({super.key});
@@ -13,7 +16,11 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
   int _selectedIndex = 0;
 
   final List<Widget> lstBottomScreen = const [
-    
+    HomeScreen(),
+    ExploreScreen(),
+    NotificationScreen(),
+    ChatScreen(),
+
   ];
   @override
   Widget build(BuildContext context) {
@@ -50,7 +57,7 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
               // MODERN STYLING
               backgroundColor: Colors.transparent, // Controlled by the Container
               elevation: 0,
-              selectedItemColor: const Color(0xff99DAB3), // Your signature mint green
+              selectedItemColor: const Color(0xffA78BFA), // Your signature mint green
               unselectedItemColor: context.textSecondary.withOpacity(0.5),
               selectedFontSize: 12,
               unselectedFontSize: 12,
@@ -69,26 +76,26 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.calendar_today_outlined),
+                    child: Icon(Icons.search),
                   ),
-                  activeIcon: Icon(Icons.calendar_today_rounded),
-                  label: "Bookings",
+                  activeIcon: Icon(Icons.search_rounded),
+                  label: "Explore",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.favorite_outline_rounded),
+                    child: Icon(Icons.notifications),
                   ),
-                  activeIcon: Icon(Icons.favorite_rounded),
-                  label: "Wishlist",
+                  activeIcon: Icon(Icons.notifications_active_rounded),
+                  label: "Notification",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.person_outline_rounded),
+                    child: Icon(Icons.chat_bubble_rounded),
                   ),
-                  activeIcon: Icon(Icons.person_rounded),
-                  label: "Profile",
+                  activeIcon: Icon(Icons.chat_rounded),
+                  label: "Messages",
                 ),
               ],
             ),
