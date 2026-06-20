@@ -6,6 +6,7 @@ import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
+import 'package:kajani/features/dashboard/presentation/pages/profile_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 
@@ -86,15 +87,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         // ─── Avatar ──────────────────────────────────────────────
-        CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.primary,
-          child: Text(
-            firstName[0].toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+        GestureDetector(
+          onTap: () {
+            AppRoutes.push(context, const ProfilePage());
+          },
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.primary,
+            child: Text(
+              firstName[0].toUpperCase(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
         ),
@@ -438,7 +444,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ─── Event Card ───────────────────────────────────────────────────
   Widget _buildEventCard(PlanEntity plan) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
       },
       child: Container(
@@ -496,9 +502,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-      
+
             const SizedBox(width: 12),
-      
+
             // ─── Cover Image ────────────────────────────────────────
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
