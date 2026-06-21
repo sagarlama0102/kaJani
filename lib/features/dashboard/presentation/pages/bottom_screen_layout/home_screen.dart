@@ -74,39 +74,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ─── Header ───────────────────────────────────────────────────────
-  Widget _buildHeader(String firstName) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'KaJani',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+Widget _buildHeader(String firstName) {
+  final userSession = ref.read(userSessionServiceProvider);
+  final profilePicture = userSession.getUserProfilePicture();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const Text(
+        'KaJani',
+        style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+      ),
+      GestureDetector(
+        onTap: () {
+          AppRoutes.push(context, const ProfilePage());
+        },
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: AppColors.primary,
+          backgroundImage: profilePicture != null
+              ? NetworkImage(profilePicture) // 👈 Google photo URLs are full URLs already
+              : null,
+          child: profilePicture == null
+              ? Text(
+                  firstName[0].toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                )
+              : null,
         ),
-        // ─── Avatar ──────────────────────────────────────────────
-        GestureDetector(
-          onTap: () {
-            AppRoutes.push(context, const ProfilePage());
-          },
-          child: CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.primary,
-            child: Text(
-              firstName[0].toUpperCase(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   // ─── Your Groups Section ──────────────────────────────────────────
   Widget _buildYourGroupsSection(PlanState planState) {

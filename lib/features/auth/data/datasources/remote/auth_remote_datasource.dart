@@ -69,6 +69,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
+        profilePicture: userJson['profilePicture'],
       );
 
       final authModel = AuthApiModel(
@@ -108,6 +109,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
+        profilePicture: userJson['profilePicture'],
       );
 
       final authModel = AuthApiModel(
@@ -176,6 +178,7 @@ Future<(AuthApiModel, UserApiModel)> signInWithGoogle() async {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
+        profilePicture: userJson['profilePicture'],
       );
 
       final authModel = AuthApiModel(

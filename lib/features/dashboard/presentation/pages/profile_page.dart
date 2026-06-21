@@ -88,7 +88,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               // ─── Back Button ────────────────────────────────────
               IconButton(
                 onPressed: () => AppRoutes.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
 
               const SizedBox(height: 8),
@@ -101,11 +105,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       radius: 50,
                       backgroundColor: const Color(0xffA8E6F5),
                       backgroundImage: profilePicture != null
-                          ? NetworkImage('${ApiEndpoints.baseUrlOnly}$profilePicture')
+                          ? NetworkImage(
+                              profilePicture.startsWith('http')
+                                  ? profilePicture
+                                  : '${ApiEndpoints.baseUrlOnly}$profilePicture',
+                            )
                           : null,
                       child: profilePicture == null
                           ? Text(
-                              firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                              firstName.isNotEmpty
+                                  ? firstName[0].toUpperCase()
+                                  : 'U',
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 36,
@@ -127,7 +137,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                          child: const Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -230,7 +244,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _showLogoutDialog,
-                  icon: const Icon(Icons.logout, color: AppColors.primary, size: 18),
+                  icon: const Icon(
+                    Icons.logout,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
                   label: const Text(
                     'Log out',
                     style: TextStyle(
@@ -341,10 +359,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.white.withOpacity(0.3),
-            ),
+            Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.3)),
           ],
         ),
       ),
