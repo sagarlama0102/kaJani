@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
+import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/features/auth/presentation/pages/login_page.dart';
+import 'package:kajani/features/auth/presentation/state/auth_state.dart';
+import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
 import 'package:kajani/features/onbording/presentation/pages/onbording_page.dart'; // CRITICAL IMPORT
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -66,33 +71,30 @@ class _SplashPageState extends ConsumerState<SplashPage>
     _slideController.forward();
   }
 
-  //     Future<void> _navigateToNext() async {
-  //   await Future.delayed(const Duration(seconds: 3));
-  //   if (!mounted) return;
+Future<void> _navigateToNext() async {
+  await Future.delayed(const Duration(seconds: 3));
+  if (!mounted) return;
 
-  //   final userSessionService = ref.read(userSessionServiceProvider);
-  //   final isLoggedIn = userSessionService.isLoggedIn();
+  final userSessionService = ref.read(userSessionServiceProvider);
+  final isLoggedIn = userSessionService.isLoggedIn();
 
-  //   if (isLoggedIn) {
+  if (isLoggedIn) {
+    await ref.read(authViewModelProvider.notifier).getCurrentUser(); 
 
-  //     await ref.read(authViewModelProvider.notifier).getCurrentUser();
-
-  //     if (mounted) {
-  //       AppRoutes.pushReplacement(context, const BottomScreenLayout());
-  //     }
-  //   } else {
-  //     AppRoutes.pushReplacement(context, const OnbordingPage());
-  //   }
-  // }
-
-  // ================================ user isLoggedin logic na vako code to check the splash to onboarding transisiton
-
-  Future<void> _navigateToNext() async {
-    await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
+    final authState = ref.read(authViewModelProvider);
+    if (authState.status == AuthStatus.authenticated) {
+      AppRoutes.pushReplacement(context, const BottomScreenLayout());
+    } else {
+      // token expired or invalid — clear session and go to login
+      await userSessionService.clearUserSession();
+      AppRoutes.pushReplacement(context, const LoginPage());
+    }
+  } else {
     AppRoutes.pushReplacement(context, const OnbordingPage());
   }
+}
 
   @override
   void dispose() {

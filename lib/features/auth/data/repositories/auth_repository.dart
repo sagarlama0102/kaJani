@@ -193,18 +193,18 @@ class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-  // ─── Upload Photo ──────────────────────────────────────────────
-  @override
-  Future<Either<Failure, String>> uploadPhoto(File photo) async {
-    if (await _networkInfo.isConnected) {
-      try {
-        // TODO: implement upload photo in remote datasource
-        return const Left(ApiFailure(message: 'Not implemented yet'));
-      } catch (e) {
-        return Left(ApiFailure(message: e.toString()));
-      }
-    } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+// ─── Upload Photo ──────────────────────────────────────────────
+@override
+Future<Either<Failure, String>> uploadPhoto(File photo) async {
+  if (await _networkInfo.isConnected) {
+    try {
+      final photoUrl = await _remoteDatasource.uploadPhoto(photo); // 👈 actually call it
+      return Right(photoUrl);
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
     }
+  } else {
+    return const Left(NetworkFailure(message: 'No internet connection'));
   }
+}
 }
