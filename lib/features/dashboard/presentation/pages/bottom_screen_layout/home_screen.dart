@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
+import 'package:kajani/features/dashboard/presentation/pages/profile_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 
@@ -73,34 +75,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ─── Header ───────────────────────────────────────────────────────
-  Widget _buildHeader(String firstName) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'KaJani',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        // ─── Avatar ──────────────────────────────────────────────
-        CircleAvatar(
+Widget _buildHeader(String firstName) {
+  final authState = ref.watch(authViewModelProvider);
+  final userSession = ref.read(userSessionServiceProvider);
+  final profilePicture = authState.uploadedPhotoUrl ?? userSession.getUserProfilePicture(); // 👈 use authState here
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      const Text(
+        'KaJani',
+        style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+      ),
+      GestureDetector(
+        onTap: () {
+          AppRoutes.push(context, const ProfilePage());
+        },
+        child: CircleAvatar(
           radius: 20,
           backgroundColor: AppColors.primary,
-          child: Text(
-            firstName[0].toUpperCase(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
+          backgroundImage: profilePicture != null
+              ? NetworkImage(
+                  profilePicture.startsWith('http')
+                      ? profilePicture
+                      : '${ApiEndpoints.baseUrlOnly}$profilePicture',
+                )
+              : null,
+          child: profilePicture == null
+              ? Text(
+                  firstName[0].toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                )
+              : null,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   // ─── Your Groups Section ──────────────────────────────────────────
   Widget _buildYourGroupsSection(PlanState planState) {
@@ -438,7 +453,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ─── Event Card ───────────────────────────────────────────────────
   Widget _buildEventCard(PlanEntity plan) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
       },
       child: Container(
@@ -496,9 +511,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
             ),
-      
+
             const SizedBox(width: 12),
-      
+
             // ─── Cover Image ────────────────────────────────────────
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
