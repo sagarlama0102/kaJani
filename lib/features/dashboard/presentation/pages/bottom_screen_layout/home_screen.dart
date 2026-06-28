@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
@@ -75,8 +76,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── Header ───────────────────────────────────────────────────────
 Widget _buildHeader(String firstName) {
+  final authState = ref.watch(authViewModelProvider);
   final userSession = ref.read(userSessionServiceProvider);
-  final profilePicture = userSession.getUserProfilePicture();
+  final profilePicture = authState.uploadedPhotoUrl ?? userSession.getUserProfilePicture(); // 👈 use authState here
 
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -93,7 +95,11 @@ Widget _buildHeader(String firstName) {
           radius: 20,
           backgroundColor: AppColors.primary,
           backgroundImage: profilePicture != null
-              ? NetworkImage(profilePicture) // 👈 Google photo URLs are full URLs already
+              ? NetworkImage(
+                  profilePicture.startsWith('http')
+                      ? profilePicture
+                      : '${ApiEndpoints.baseUrlOnly}$profilePicture',
+                )
               : null,
           child: profilePicture == null
               ? Text(
