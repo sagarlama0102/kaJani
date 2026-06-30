@@ -1,4 +1,5 @@
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
+import 'package:kajani/features/dashboard/domain/entities/plan_memeber_entity.dart';
 
 class PlanApiModel {
   final String? planId;
@@ -15,6 +16,7 @@ class PlanApiModel {
   final String? creatorId;
   final List<String>? members;
   final List<String>? savedBy;
+  final List<PlanMemberEntity>? memberDetails;
 
   const PlanApiModel({
     this.planId,
@@ -31,6 +33,7 @@ class PlanApiModel {
     this.creatorId,
     this.members,
     this.savedBy,
+    this.memberDetails
   });
 
   factory PlanApiModel.fromJson(Map<String, dynamic> json) {
@@ -54,12 +57,23 @@ class PlanApiModel {
       members: (json['members'] as List<dynamic>?)
           ?.map((e) => e is Map ? e['_id'] as String : e as String)
           .toList(),
+      memberDetails: (json['members'] as List<dynamic>?)
+          ?.where((e) => e is Map) // only when populated
+          .map(
+            (e) => PlanMemberEntity(
+              id: e['_id'] as String,
+              firstName: e['firstName'] as String? ?? '',
+              lastName: e['lastName'] as String? ?? '',
+              profilePicture: e['profilePicture'] as String?,
+              username: e['username'] as String? ?? '',
+            ),
+          )
+          .toList(),
       savedBy: (json['savedBy'] as List<dynamic>?)
           ?.map((e) => e is Map ? e['_id'] as String : e as String)
           .toList(),
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -77,7 +91,7 @@ class PlanApiModel {
     };
   }
 
-  // ─── toEntity 
+  // ─── toEntity
   PlanEntity toEntity() {
     return PlanEntity(
       planId: planId,
@@ -94,10 +108,11 @@ class PlanApiModel {
       creatorId: creatorId,
       members: members,
       savedBy: savedBy,
+      memberDetails: memberDetails,
     );
   }
 
-  // ─── fromEntity 
+  // ─── fromEntity
   factory PlanApiModel.fromEntity(PlanEntity entity) {
     return PlanApiModel(
       planId: entity.planId,
@@ -114,10 +129,11 @@ class PlanApiModel {
       creatorId: entity.creatorId,
       members: entity.members,
       savedBy: entity.savedBy,
+      memberDetails: entity.memberDetails,
     );
   }
 
-  // ─── toEntityList 
+  // ─── toEntityList
   static List<PlanEntity> toEntityList(List<PlanApiModel> models) {
     return models.map((model) => model.toEntity()).toList();
   }
