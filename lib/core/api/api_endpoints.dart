@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrlOnly = 'http://192.168.101.6:4000';
+  static const String baseUrlOnly = 'http://192.168.101.12:4000';
 
   static const String baseUrl = '$baseUrlOnly/api/';
 

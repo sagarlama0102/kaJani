@@ -57,9 +57,35 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     }
   }
 
-  Future<void> _handleJoin() async {
+Future<void> _handleJoin() async {
+  final confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xff1A1A2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Join this plan?', style: TextStyle(color: Colors.white)),
+      content: const Text(
+        'You\'ll be added to this activity and can chat with other members once chat is available.',
+        style: TextStyle(color: Colors.white70),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Join', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm == true) {
     await ref.read(planViewModelProvider.notifier).joinPlan(widget.planId);
   }
+}
 
   Future<void> _handleLeave() async {
     await ref.read(planViewModelProvider.notifier).leavePlan(widget.planId);
