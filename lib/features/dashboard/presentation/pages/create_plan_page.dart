@@ -321,7 +321,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         'location': _locationController.text.trim(),
         'date': _selectedDate,
         'time': _selectedTime,
-        'endtime':_selectedEndTime,
+        'endTime':_selectedEndTime,
         'isPublic': _isPublic,
         if (_maxMembersController.text.isNotEmpty)
           'maxMembers': int.tryParse(_maxMembersController.text),
@@ -659,51 +659,50 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     ),
 
                     const SizedBox(height: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _fieldLabel('End Time'),
-                          GestureDetector(
-                            onTap: _pickEndTime,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xff1A1A2E),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.1),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.access_time_filled,
-                                    color: Colors.white.withOpacity(0.5),
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _selectedEndTime.isEmpty
-                                        ? '--:--'
-                                        : _selectedEndTime,
-                                    style: TextStyle(
-                                      color: _selectedEndTime.isEmpty
-                                          ? Colors.white.withOpacity(0.3)
-                                          : Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _fieldLabel('End Time'),
+                        GestureDetector(
+                          onTap: _pickEndTime,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xff1A1A2E),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.1),
                               ),
                             ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.access_time_filled,
+                                  color: Colors.white.withOpacity(0.5),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _selectedEndTime.isEmpty
+                                      ? '--:--'
+                                      : _selectedEndTime,
+                                  style: TextStyle(
+                                    color: _selectedEndTime.isEmpty
+                                        ? Colors.white.withOpacity(0.3)
+                                        : Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 20),
 
                     // ─── Date Picker ───────────────────────────────
                     _fieldLabel('Date'),
