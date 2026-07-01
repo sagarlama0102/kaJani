@@ -10,6 +10,7 @@ class PlanApiModel {
   final String location;
   final String date;
   final String? endTime;
+  final String? endDate;
   final String time;
   final String status;
   final bool isPublic;
@@ -29,6 +30,7 @@ class PlanApiModel {
     required this.date,
     required this.time,
     this.endTime,
+    this.endDate,
     required this.status,
     this.isPublic = true,
     this.maxMembers,
@@ -49,6 +51,7 @@ class PlanApiModel {
       date: json['date'] as String,
       time: json['time'] as String,
       endTime: json['endTime'] as String?,
+      endDate: json['endDate'] as String?,
       status: json['status'] as String,
       isPublic: json['isPublic'] as bool? ?? true,
       maxMembers: json['maxMembers'] as int?,
@@ -89,6 +92,7 @@ class PlanApiModel {
       'date': date,
       'time': time,
       'endTime': endTime,
+      'endDate': endDate,
       'status': status,
       'isPublic': isPublic,
       if (maxMembers != null) 'maxMembers': maxMembers,
@@ -107,6 +111,7 @@ class PlanApiModel {
       date: date,
       time: time,
       endTime: endTime,
+      endDate: endDate,
       status: status,
       isPublic: isPublic,
       maxMembers: maxMembers,
@@ -129,6 +134,7 @@ class PlanApiModel {
       date: entity.date,
       time: entity.time,
       endTime: entity.endTime,
+      endDate: entity.endDate,
       status: entity.status,
       isPublic: entity.isPublic,
       maxMembers: entity.maxMembers,

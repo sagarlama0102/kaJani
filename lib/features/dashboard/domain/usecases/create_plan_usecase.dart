@@ -15,6 +15,7 @@ class CreatePlanParams extends Equatable {
   final String date;
   final String time;
   final String endTime;
+  final String endDate;
   final bool isPublic;
   final int? maxMembers;
   final String? coverImage;
@@ -27,6 +28,7 @@ class CreatePlanParams extends Equatable {
     required this.date,
     required this.time,
     required this.endTime,
+    required this.endDate,
     this.isPublic = true,
     this.maxMembers,
     this.coverImage,
@@ -41,6 +43,7 @@ class CreatePlanParams extends Equatable {
     date,
     time,
     endTime,
+    endDate,
     isPublic,
     maxMembers,
     coverImage,
@@ -68,6 +71,7 @@ class CreatePlanUsecase
       date: params.date,
       time: params.time,
       endTime: params.endTime,
+      endDate: params.endDate,
       isPublic: params.isPublic,
       maxMembers: params.maxMembers,
       coverImage: params.coverImage,

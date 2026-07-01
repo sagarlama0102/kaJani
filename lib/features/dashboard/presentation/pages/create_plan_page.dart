@@ -34,6 +34,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   String _selectedDate = '';
   String _selectedTime = '';
   String _selectedEndTime = '';
+  String _selectedEndDate = '';
   bool _isPublic = true;
 
   @override
@@ -50,6 +51,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       _selectedDate = plan.date;
       _selectedTime = plan.time;
       _selectedEndTime = plan.endTime ?? '';
+      _selectedEndDate = plan.endDate ?? '';
       _isPublic = plan.isPublic;
     }
   }
@@ -270,6 +272,32 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
     }
   }
 
+  Future<void> _pickEndDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.primary,
+              surface: Color(0xff1A1A2E),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedEndDate =
+            '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      });
+    }
+  }
+
   // ─── Create Plan ──────────────────────────────────────────────────
   Future<void> _handleCreate() async {
     if (!_formKey.currentState!.validate()) return;
@@ -283,6 +311,10 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
     }
     if (_selectedEndTime.isEmpty) {
       SnackbarUtils.showError(context, 'Please select an end time');
+      return;
+    }
+    if (_selectedEndDate.isEmpty) {
+      SnackbarUtils.showError(context, 'Please select an end date');
       return;
     }
 
@@ -321,7 +353,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         'location': _locationController.text.trim(),
         'date': _selectedDate,
         'time': _selectedTime,
-        'endTime':_selectedEndTime,
+        'endTime': _selectedEndTime,
+        'endDate': _selectedEndDate,
         'isPublic': _isPublic,
         if (_maxMembersController.text.isNotEmpty)
           'maxMembers': int.tryParse(_maxMembersController.text),
@@ -343,6 +376,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
             date: _selectedDate,
             time: _selectedTime,
             endTime: _selectedEndTime,
+            endDate: _selectedEndDate,
             isPublic: _isPublic,
             maxMembers: _maxMembersController.text.isEmpty
                 ? null
@@ -746,6 +780,47 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     ),
 
                     const SizedBox(height: 20),
+
+                    // ─── End Date Picker ───────────────────────────────────────
+                    _fieldLabel('End Date'),
+                    GestureDetector(
+                      onTap: _pickEndDate,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff1A1A2E),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today_outlined,
+                              color: Colors.white.withOpacity(0.5),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _selectedEndDate.isEmpty
+                                  ? 'Select end date'
+                                  : _selectedEndDate,
+                              style: TextStyle(
+                                color: _selectedEndDate.isEmpty
+                                    ? Colors.white.withOpacity(0.3)
+                                    : Colors.white,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
                     // ─── Location Field ────────────────────────────
                     _fieldLabel('Location'),

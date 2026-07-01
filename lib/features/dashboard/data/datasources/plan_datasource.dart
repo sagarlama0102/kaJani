@@ -19,6 +19,7 @@ abstract interface class IPlanRemoteDatasource {
     required String date,
     required String time,
     required String endTime,
+    required String endDate,
     bool isPublic,
     int? maxMembers,
     String? coverImage,
