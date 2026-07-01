@@ -14,6 +14,7 @@ class CreatePlanParams extends Equatable {
   final String location;
   final String date;
   final String time;
+  final String endTime;
   final bool isPublic;
   final int? maxMembers;
   final String? coverImage;
@@ -25,6 +26,7 @@ class CreatePlanParams extends Equatable {
     required this.location,
     required this.date,
     required this.time,
+    required this.endTime,
     this.isPublic = true,
     this.maxMembers,
     this.coverImage,
@@ -32,16 +34,17 @@ class CreatePlanParams extends Equatable {
 
   @override
   List<Object?> get props => [
-        title,
-        description,
-        category,
-        location,
-        date,
-        time,
-        isPublic,
-        maxMembers,
-        coverImage,
-      ];
+    title,
+    description,
+    category,
+    location,
+    date,
+    time,
+    endTime,
+    isPublic,
+    maxMembers,
+    coverImage,
+  ];
 }
 
 final createPlanUsecaseProvider = Provider<CreatePlanUsecase>((ref) {
@@ -53,7 +56,7 @@ class CreatePlanUsecase
   final IPlanRepository _repository;
 
   CreatePlanUsecase({required IPlanRepository repository})
-      : _repository = repository;
+    : _repository = repository;
 
   @override
   Future<Either<Failure, PlanEntity>> call(CreatePlanParams params) {
@@ -64,6 +67,7 @@ class CreatePlanUsecase
       location: params.location,
       date: params.date,
       time: params.time,
+      endTime: params.endTime,
       isPublic: params.isPublic,
       maxMembers: params.maxMembers,
       coverImage: params.coverImage,

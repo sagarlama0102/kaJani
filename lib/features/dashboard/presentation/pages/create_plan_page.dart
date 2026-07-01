@@ -12,17 +12,13 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
-import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
-
 
 class CreatePlanPage extends ConsumerStatefulWidget {
-  final PlanEntity? existingPlan; 
+  final PlanEntity? existingPlan;
   const CreatePlanPage({super.key, this.existingPlan});
 
   @override
   ConsumerState<CreatePlanPage> createState() => _CreatePlanPageState();
-
-
 }
 
 class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
@@ -37,25 +33,26 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   String _selectedCategory = 'social';
   String _selectedDate = '';
   String _selectedTime = '';
+  String _selectedEndTime = '';
   bool _isPublic = true;
 
-    @override
-void initState() {
-  super.initState();
-  
-  // 👈 if editing, pre-fill all fields
-  if (widget.existingPlan != null) {
-    final plan = widget.existingPlan!;
-    _titleController.text = plan.title;
-    _descriptionController.text = plan.description;
-    _locationController.text = plan.location;
-    _maxMembersController.text = plan.maxMembers?.toString() ?? '';
-    _selectedCategory = plan.category;
-    _selectedDate = plan.date;
-    _selectedTime = plan.time;
-    _isPublic = plan.isPublic;
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.existingPlan != null) {
+      final plan = widget.existingPlan!;
+      _titleController.text = plan.title;
+      _descriptionController.text = plan.description;
+      _locationController.text = plan.location;
+      _maxMembersController.text = plan.maxMembers?.toString() ?? '';
+      _selectedCategory = plan.category;
+      _selectedDate = plan.date;
+      _selectedTime = plan.time;
+      _selectedEndTime = plan.endTime ?? '';
+      _isPublic = plan.isPublic;
+    }
   }
-}
 
   final List<Map<String, String>> _categories = [
     {'value': 'social', 'label': 'Social'},
@@ -77,122 +74,125 @@ void initState() {
   }
 
   // ─── Permission Handler ───────────────────────────────────────────
-Future<bool> _requestPermission(Permission permission) async {
-  final status = await permission.status;
-  if (status.isGranted) return true;
-  if (status.isDenied) {
-    final result = await permission.request();
-    return result.isGranted;
-  }
-  if (status.isPermanentlyDenied) {
-    _showPermissionDeniedDialog();
+  Future<bool> _requestPermission(Permission permission) async {
+    final status = await permission.status;
+    if (status.isGranted) return true;
+    if (status.isDenied) {
+      final result = await permission.request();
+      return result.isGranted;
+    }
+    if (status.isPermanentlyDenied) {
+      _showPermissionDeniedDialog();
+      return false;
+    }
     return false;
   }
-  return false;
-}
 
-void _showPermissionDeniedDialog() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xff1A1A2E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        'Permission Required',
-        style: TextStyle(color: Colors.white),
-      ),
-      content: const Text(
-        'Please enable access in settings to add a cover photo.',
-        style: TextStyle(color: Colors.white70),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xff1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Permission Required',
+          style: TextStyle(color: Colors.white),
         ),
-        TextButton(
-          onPressed: () => openAppSettings(),
-          child: Text('Settings', style: TextStyle(color: AppColors.primary)),
+        content: const Text(
+          'Please enable access in settings to add a cover photo.',
+          style: TextStyle(color: Colors.white70),
         ),
-      ],
-    ),
-  );
-}
-
-// ─── Pick from Camera ─────────────────────────────────────────────
-Future<void> _pickFromCamera() async {
-  if (await _requestPermission(Permission.camera)) {
-    final photo = await _imagePicker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-    if (photo != null) {
-      setState(() => _coverImage = File(photo.path));
-    }
-  }
-}
-
-// ─── Pick from Gallery ────────────────────────────────────────────
-Future<void> _pickFromGallery() async {
-  final image = await _imagePicker.pickImage(
-    source: ImageSource.gallery,
-    imageQuality: 80,
-  );
-  if (image != null) {
-    setState(() => _coverImage = File(image.path));
-  }
-}
-
-// ─── Bottom Sheet Picker ──────────────────────────────────────────
-void _pickCoverImage() {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: const Color(0xff1A1A2E),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 8),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[600],
-              borderRadius: BorderRadius.circular(10),
-            ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
-          const SizedBox(height: 8),
-          ListTile(
-            leading: const Icon(Icons.camera_alt_outlined, color: Colors.white),
-            title: const Text(
-              'Take a Photo',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              _pickFromCamera();
-            },
+          TextButton(
+            onPressed: () => openAppSettings(),
+            child: Text('Settings', style: TextStyle(color: AppColors.primary)),
           ),
-          ListTile(
-            leading: const Icon(Icons.image_outlined, color: Colors.white),
-            title: const Text(
-              'Choose from Gallery',
-              style: TextStyle(color: Colors.white),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-              _pickFromGallery();
-            },
-          ),
-          const SizedBox(height: 10),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
+
+  // ─── Pick from Camera ─────────────────────────────────────────────
+  Future<void> _pickFromCamera() async {
+    if (await _requestPermission(Permission.camera)) {
+      final photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      if (photo != null) {
+        setState(() => _coverImage = File(photo.path));
+      }
+    }
+  }
+
+  // ─── Pick from Gallery ────────────────────────────────────────────
+  Future<void> _pickFromGallery() async {
+    final image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (image != null) {
+      setState(() => _coverImage = File(image.path));
+    }
+  }
+
+  // ─── Bottom Sheet Picker ──────────────────────────────────────────
+  void _pickCoverImage() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xff1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[600],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: Colors.white,
+              ),
+              title: const Text(
+                'Take a Photo',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFromCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.image_outlined, color: Colors.white),
+              title: const Text(
+                'Choose from Gallery',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFromGallery();
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ─── Date Picker ──────────────────────────────────────────────────
   Future<void> _pickDate() async {
@@ -246,92 +246,114 @@ void _pickCoverImage() {
     }
   }
 
-  // ─── Create Plan ──────────────────────────────────────────────────
- Future<void> _handleCreate() async {
-  if (!_formKey.currentState!.validate()) return;
-  if (_selectedDate.isEmpty) {
-    SnackbarUtils.showError(context, 'Please select a date');
-    return;
-  }
-  if (_selectedTime.isEmpty) {
-    SnackbarUtils.showError(context, 'Please select a time');
-    return;
-  }
-
-  String? coverImageUrl;
-
-
-  // 1. Upload image first if selected
-  if (_coverImage != null) {
-    try {
-      final fileName = _coverImage!.path.split('/').last;
-      final formData = FormData.fromMap({
-        'coverImage': await MultipartFile.fromFile(
-          _coverImage!.path,
-          filename: fileName,
-        ),
+  Future<void> _pickEndTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.primary,
+              surface: Color(0xff1A1A2E),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedEndTime =
+            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       });
-      // upload directly via api client
-      final uploadResponse = await ref
-          .read(apiClientProvider)
-          .uploadFile(
-            ApiEndpoints.uploadPlanCover,
-            formData: formData,
-          );
-
-      if (uploadResponse.data['success'] == true) {
-        coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
-      }
-    } catch (e) {
-      // if upload fails, create plan without image
-      print('Image upload failed: $e');
     }
   }
-  final isEditMode = widget.existingPlan != null;
 
-  if (isEditMode){
-     final updateData = {
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'category': _selectedCategory,
-      'location': _locationController.text.trim(),
-      'date': _selectedDate,
-      'time': _selectedTime,
-      'isPublic': _isPublic,
-      if (_maxMembersController.text.isNotEmpty)
-        'maxMembers': int.tryParse(_maxMembersController.text),
-      if (coverImageUrl != null) 'coverImage': coverImageUrl, // only if changed
-    };
-     await ref.read(planViewModelProvider.notifier).updatePlan(
-          widget.existingPlan!.planId!,
-          updateData,
-        );
-  }else{
-    // 2. Create plan with image URL
-  await ref.read(planViewModelProvider.notifier).createPlan(
-    title: _titleController.text.trim(),
-    description: _descriptionController.text.trim(),
-    category: _selectedCategory,
-    location: _locationController.text.trim(),
-    date: _selectedDate,
-    time: _selectedTime,
-    isPublic: _isPublic,
-    maxMembers: _maxMembersController.text.isEmpty
-        ? null
-        : int.tryParse(_maxMembersController.text),
-    coverImage: coverImageUrl, 
-  );
+  // ─── Create Plan ──────────────────────────────────────────────────
+  Future<void> _handleCreate() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedDate.isEmpty) {
+      SnackbarUtils.showError(context, 'Please select a date');
+      return;
+    }
+    if (_selectedTime.isEmpty) {
+      SnackbarUtils.showError(context, 'Please select a time');
+      return;
+    }
+    if (_selectedEndTime.isEmpty) {
+      SnackbarUtils.showError(context, 'Please select an end time');
+      return;
+    }
+
+    String? coverImageUrl;
+
+    // 1. Upload image first if selected
+    if (_coverImage != null) {
+      try {
+        final fileName = _coverImage!.path.split('/').last;
+        final formData = FormData.fromMap({
+          'coverImage': await MultipartFile.fromFile(
+            _coverImage!.path,
+            filename: fileName,
+          ),
+        });
+        // upload directly via api client
+        final uploadResponse = await ref
+            .read(apiClientProvider)
+            .uploadFile(ApiEndpoints.uploadPlanCover, formData: formData);
+
+        if (uploadResponse.data['success'] == true) {
+          coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
+        }
+      } catch (e) {
+        // if upload fails, create plan without image
+        print('Image upload failed: $e');
+      }
+    }
+    final isEditMode = widget.existingPlan != null;
+
+    if (isEditMode) {
+      final updateData = {
+        'title': _titleController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'category': _selectedCategory,
+        'location': _locationController.text.trim(),
+        'date': _selectedDate,
+        'time': _selectedTime,
+        'endtime':_selectedEndTime,
+        'isPublic': _isPublic,
+        if (_maxMembersController.text.isNotEmpty)
+          'maxMembers': int.tryParse(_maxMembersController.text),
+        if (coverImageUrl != null)
+          'coverImage': coverImageUrl, // only if changed
+      };
+      await ref
+          .read(planViewModelProvider.notifier)
+          .updatePlan(widget.existingPlan!.planId!, updateData);
+    } else {
+      // 2. Create plan with image URL
+      await ref
+          .read(planViewModelProvider.notifier)
+          .createPlan(
+            title: _titleController.text.trim(),
+            description: _descriptionController.text.trim(),
+            category: _selectedCategory,
+            location: _locationController.text.trim(),
+            date: _selectedDate,
+            time: _selectedTime,
+            endTime: _selectedEndTime,
+            isPublic: _isPublic,
+            maxMembers: _maxMembersController.text.isEmpty
+                ? null
+                : int.tryParse(_maxMembersController.text),
+            coverImage: coverImageUrl,
+          );
+    }
   }
 
-  
-}
-
-
   // ─── Input decoration ─────────────────────────────────────────────
-  InputDecoration _inputDecoration({
-    required String hint,
-    Widget? prefixIcon,
-  }) {
+  InputDecoration _inputDecoration({required String hint, Widget? prefixIcon}) {
     return InputDecoration(
       hintText: hint,
       hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
@@ -362,19 +384,20 @@ void _pickCoverImage() {
     final planState = ref.watch(planViewModelProvider);
 
     ref.listen<PlanState>(planViewModelProvider, (previous, next) {
-  if (next.status == PlanStatus.created || next.status == PlanStatus.updated) {
-    SnackbarUtils.showSuccess(
-      context,
-      widget.existingPlan != null
-          ? 'Activity updated successfully!'
-          : 'Activity created successfully!',
-    );
-    AppRoutes.pop(context);
-  } else if (next.status == PlanStatus.error && next.errorMessage != null) {
-    SnackbarUtils.showError(context, next.errorMessage!);
-    ref.read(planViewModelProvider.notifier).resetError();
-  }
-});
+      if (next.status == PlanStatus.created ||
+          next.status == PlanStatus.updated) {
+        SnackbarUtils.showSuccess(
+          context,
+          widget.existingPlan != null
+              ? 'Activity updated successfully!'
+              : 'Activity created successfully!',
+        );
+        AppRoutes.pop(context);
+      } else if (next.status == PlanStatus.error && next.errorMessage != null) {
+        SnackbarUtils.showError(context, next.errorMessage!);
+        ref.read(planViewModelProvider.notifier).resetError();
+      }
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xff0F0F0F),
@@ -433,80 +456,80 @@ void _pickCoverImage() {
 
               // ─── Cover Photo ─────────────────────────────────────
               GestureDetector(
-  onTap: _pickCoverImage, // 👈 shows bottom sheet
-  child: Container(
-    width: double.infinity,
-    height: 140,
-    decoration: BoxDecoration(
-      color: const Color(0xff1A1A2E),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withOpacity(0.1)),
-      image: _coverImage != null
-          ? DecorationImage(
-              image: FileImage(_coverImage!),
-              fit: BoxFit.cover,
-            )
-          : null,
-    ),
-    child: _coverImage != null
-        // ─── Image selected — show edit overlay ──────────────
-        ? Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.black.withOpacity(0.3),
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.edit_outlined,
-                  color: Colors.white,
-                  size: 24,
+                onTap: _pickCoverImage, // 👈 shows bottom sheet
+                child: Container(
+                  width: double.infinity,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff1A1A2E),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    image: _coverImage != null
+                        ? DecorationImage(
+                            image: FileImage(_coverImage!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _coverImage != null
+                      // ─── Image selected — show edit overlay ──────────────
+                      ? Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.black.withOpacity(0.3),
+                          ),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.edit_outlined,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        )
+                      // ─── No image — show upload placeholder ──────────────
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: AppColors.primary,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Add Cover Photo',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.6),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Tap to choose from gallery or camera',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.3),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
-            ),
-          )
-        // ─── No image — show upload placeholder ──────────────
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.camera_alt_outlined,
-                  color: AppColors.primary,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Add Cover Photo',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Tap to choose from gallery or camera',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.3),
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-  ),
-),
 
               const SizedBox(height: 24),
 
@@ -636,6 +659,51 @@ void _pickCoverImage() {
                     ),
 
                     const SizedBox(height: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _fieldLabel('End Time'),
+                          GestureDetector(
+                            onTap: _pickEndTime,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff1A1A2E),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.1),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time_filled,
+                                    color: Colors.white.withOpacity(0.5),
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _selectedEndTime.isEmpty
+                                        ? '--:--'
+                                        : _selectedEndTime,
+                                    style: TextStyle(
+                                      color: _selectedEndTime.isEmpty
+                                          ? Colors.white.withOpacity(0.3)
+                                          : Colors.white,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
                     // ─── Date Picker ───────────────────────────────
                     _fieldLabel('Date'),
@@ -710,7 +778,8 @@ void _pickCoverImage() {
                       style: const TextStyle(color: Colors.white),
                       maxLines: 4,
                       decoration: _inputDecoration(
-                        hint: "What's the vibe? Let people know what to expect...",
+                        hint:
+                            "What's the vibe? Let people know what to expect...",
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -836,10 +905,7 @@ void _pickCoverImage() {
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Text(
-                                    '🚀',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                                  Text('🚀', style: TextStyle(fontSize: 16)),
                                 ],
                               ),
                       ),

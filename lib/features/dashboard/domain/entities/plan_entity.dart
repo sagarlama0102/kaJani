@@ -10,6 +10,7 @@ class PlanEntity extends Equatable {
   final String location;
   final String date;
   final String time;
+  final String? endTime;
   final String status;
   final bool isPublic;
   final int? maxMembers;         
@@ -27,6 +28,7 @@ class PlanEntity extends Equatable {
     required this.location,
     required this.date,
     required this.time,
+    this.endTime,
     required this.status,
     this.isPublic = true,
     this.maxMembers,
@@ -48,6 +50,7 @@ class PlanEntity extends Equatable {
     location,
     date,
     time,
+    endTime,
     status,
     isPublic,
     maxMembers,
