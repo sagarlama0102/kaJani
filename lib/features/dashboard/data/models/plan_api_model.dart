@@ -1,4 +1,5 @@
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
+import 'package:kajani/features/dashboard/domain/entities/plan_memeber_entity.dart';
 
 class PlanApiModel {
   final String? planId;
@@ -8,6 +9,8 @@ class PlanApiModel {
   final String? coverImage;
   final String location;
   final String date;
+  final String? endTime;
+  final String? endDate;
   final String time;
   final String status;
   final bool isPublic;
@@ -15,6 +18,7 @@ class PlanApiModel {
   final String? creatorId;
   final List<String>? members;
   final List<String>? savedBy;
+  final List<PlanMemberEntity>? memberDetails;
 
   const PlanApiModel({
     this.planId,
@@ -25,12 +29,15 @@ class PlanApiModel {
     required this.location,
     required this.date,
     required this.time,
+    this.endTime,
+    this.endDate,
     required this.status,
     this.isPublic = true,
     this.maxMembers,
     this.creatorId,
     this.members,
     this.savedBy,
+    this.memberDetails
   });
 
   factory PlanApiModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +50,8 @@ class PlanApiModel {
       location: json['location'] as String,
       date: json['date'] as String,
       time: json['time'] as String,
+      endTime: json['endTime'] as String?,
+      endDate: json['endDate'] as String?,
       status: json['status'] as String,
       isPublic: json['isPublic'] as bool? ?? true,
       maxMembers: json['maxMembers'] as int?,
@@ -54,12 +63,23 @@ class PlanApiModel {
       members: (json['members'] as List<dynamic>?)
           ?.map((e) => e is Map ? e['_id'] as String : e as String)
           .toList(),
+      memberDetails: (json['members'] as List<dynamic>?)
+          ?.where((e) => e is Map) // only when populated
+          .map(
+            (e) => PlanMemberEntity(
+              id: e['_id'] as String,
+              firstName: e['firstName'] as String? ?? '',
+              lastName: e['lastName'] as String? ?? '',
+              profilePicture: e['profilePicture'] as String?,
+              username: e['username'] as String? ?? '',
+            ),
+          )
+          .toList(),
       savedBy: (json['savedBy'] as List<dynamic>?)
           ?.map((e) => e is Map ? e['_id'] as String : e as String)
           .toList(),
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -71,13 +91,15 @@ class PlanApiModel {
       'location': location,
       'date': date,
       'time': time,
+      'endTime': endTime,
+      'endDate': endDate,
       'status': status,
       'isPublic': isPublic,
       if (maxMembers != null) 'maxMembers': maxMembers,
     };
   }
 
-  // ─── toEntity 
+  // ─── toEntity
   PlanEntity toEntity() {
     return PlanEntity(
       planId: planId,
@@ -88,16 +110,19 @@ class PlanApiModel {
       location: location,
       date: date,
       time: time,
+      endTime: endTime,
+      endDate: endDate,
       status: status,
       isPublic: isPublic,
       maxMembers: maxMembers,
       creatorId: creatorId,
       members: members,
       savedBy: savedBy,
+      memberDetails: memberDetails,
     );
   }
 
-  // ─── fromEntity 
+  // ─── fromEntity
   factory PlanApiModel.fromEntity(PlanEntity entity) {
     return PlanApiModel(
       planId: entity.planId,
@@ -108,16 +133,19 @@ class PlanApiModel {
       location: entity.location,
       date: entity.date,
       time: entity.time,
+      endTime: entity.endTime,
+      endDate: entity.endDate,
       status: entity.status,
       isPublic: entity.isPublic,
       maxMembers: entity.maxMembers,
       creatorId: entity.creatorId,
       members: entity.members,
       savedBy: entity.savedBy,
+      memberDetails: entity.memberDetails,
     );
   }
 
-  // ─── toEntityList 
+  // ─── toEntityList
   static List<PlanEntity> toEntityList(List<PlanApiModel> models) {
     return models.map((model) => model.toEntity()).toList();
   }

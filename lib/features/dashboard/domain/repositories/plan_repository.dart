@@ -11,6 +11,8 @@ abstract interface class IPlanRepository {
     required String category,
     required String location,
     required String date,
+    required String endTime,
+    required String endDate,
     required String time,
     bool isPublic,
     int? maxMembers,

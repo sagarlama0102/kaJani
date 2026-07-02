@@ -58,7 +58,36 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   Future<void> _handleJoin() async {
-    await ref.read(planViewModelProvider.notifier).joinPlan(widget.planId);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xff1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Join this plan?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'You\'ll be added to this activity and can chat with other members once chat is available.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Join', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref.read(planViewModelProvider.notifier).joinPlan(widget.planId);
+    }
   }
 
   Future<void> _handleLeave() async {
@@ -243,6 +272,88 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                               : '${plan.members?.length ?? 0} members joined',
                           subtitle: null,
                         ),
+
+                        if (isCreator &&
+                            plan.memberDetails != null &&
+                            plan.memberDetails!.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Members',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...plan.memberDetails!.map(
+                            (member) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: AppColors.primary,
+                                    backgroundImage:
+                                        member.profilePicture != null
+                                        ? NetworkImage(
+                                            member.profilePicture!.startsWith(
+                                                  'http',
+                                                )
+                                                ? member.profilePicture!
+                                                : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
+                                          )
+                                        : null,
+                                    child: member.profilePicture == null
+                                        ? Text(
+                                            member.firstName.isNotEmpty
+                                                ? member.firstName[0]
+                                                      .toUpperCase()
+                                                : '?',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      '${member.firstName} ${member.lastName}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (member.id == plan.creatorId)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withOpacity(
+                                          0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        'Creator',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
 
                         const SizedBox(height: 24),
 
