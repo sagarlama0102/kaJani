@@ -20,4 +20,8 @@ class ApiEndpoints {
   static const String savedPlans = 'plans/user/saved';
 
   static const String uploadPlanCover = 'plans/upload-cover';
+
+  static const String notifications = 'notifications';
+  static const String unreadCount = 'notifications/unread-count';
+  static const String markAllRead = 'notifications/mark-all-read';
 }
