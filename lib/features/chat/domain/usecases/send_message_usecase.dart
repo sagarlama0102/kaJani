@@ -9,6 +9,9 @@ class SendMessageParams extends Equatable {
   final String senderName;
   final String? senderProfilePicture;
   final String text;
+  final String planTitle;         
+  final String? planCoverImage;   
+  final List<String> memberIds;
 
   const SendMessageParams({
     required this.planId,
@@ -16,6 +19,9 @@ class SendMessageParams extends Equatable {
     required this.senderName,
     this.senderProfilePicture,
     required this.text,
+    required this.planTitle,
+    this.planCoverImage,
+    required this.memberIds,
   });
 
   @override
@@ -25,6 +31,9 @@ class SendMessageParams extends Equatable {
         senderName,
         senderProfilePicture,
         text,
+        planTitle, 
+        planCoverImage, 
+        memberIds,
       ];
 }
 
@@ -47,6 +56,9 @@ class SendMessageUsecase {
       senderName: params.senderName,
       senderProfilePicture: params.senderProfilePicture,
       text: params.text,
+      planTitle: params.planTitle,
+      planCoverImage: params.planCoverImage,
+      memberIds: params.memberIds,
     );
   }
 }

@@ -420,6 +420,8 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           PlanChatScreen(
                             planId: widget.planId,
                             planTitle: plan.title,
+                            planCoverImage: plan.coverImage,
+                            memberIds: plan.members ?? [],  
                           ),
                         );
                       },

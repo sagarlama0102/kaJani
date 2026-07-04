@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kajani/features/chat/data/datasources/remote/chat_remote_datasource.dart';
+import 'package:kajani/features/chat/domain/entities/chat_list_entity.dart';
 import 'package:kajani/features/chat/domain/entities/chat_message_entity.dart';
 import 'package:kajani/features/chat/domain/repositories/chat_repository.dart';
 
@@ -23,6 +24,9 @@ class ChatRepositoryImpl implements IChatRepository {
     required String senderName,
     String? senderProfilePicture,
     required String text,
+    required String planTitle,
+    String? planCoverImage,
+    required List<String> memberIds,
   }) async {
     await _remoteDatasource.sendMessage(
       planId: planId,
@@ -30,6 +34,9 @@ class ChatRepositoryImpl implements IChatRepository {
       senderName: senderName,
       senderProfilePicture: senderProfilePicture,
       text: text,
+      planTitle: planTitle,
+      planCoverImage: planCoverImage,
+      memberIds: memberIds,
     );
   }
 
@@ -37,4 +44,8 @@ class ChatRepositoryImpl implements IChatRepository {
   Stream<List<ChatMessageEntity>> getMessagesStream(String planId) {
     return _remoteDatasource.getMessagesStream(planId);
   }
+  @override
+  Stream<List<ChatListEntity>> getChatListStream(String userId) {
+    return _remoteDatasource.getChatListStream(userId);
+}
 }

@@ -10,11 +10,16 @@ import 'package:kajani/features/chat/presentation/view_model/chat_view_model.dar
 class PlanChatScreen extends ConsumerStatefulWidget {
   final String planId;
   final String planTitle;
+  final String? planCoverImage;   
+  final List<String> memberIds;   
 
   const PlanChatScreen({
     super.key,
     required this.planId,
     required this.planTitle,
+    this.planCoverImage,         
+    this.memberIds = const [], 
+    
   });
 
   @override
@@ -63,6 +68,7 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
 
     final text = _messageController.text.trim();
     _messageController.clear();
+    
 
     await ref.read(chatViewModelProvider.notifier).sendMessage(
           planId: widget.planId,
@@ -70,6 +76,10 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
           senderName: senderName,
           senderProfilePicture: profilePicture,
           text: text,
+          planTitle: widget.planTitle,           
+          planCoverImage: widget.planCoverImage,
+          memberIds: widget.memberIds, 
+
         );
 
     // scroll to bottom after sending
