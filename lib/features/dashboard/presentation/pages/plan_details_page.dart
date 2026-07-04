@@ -154,10 +154,14 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                   Stack(
                     children: [
                       Container(
-                        height: 320,
+                        height: 240,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: const Color(0xff1A1A2E),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          ),
                           image: plan.coverImage != null
                               ? DecorationImage(
                                   image: NetworkImage(
@@ -194,8 +198,8 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                                 icon:
                                     plan.savedBy?.contains(currentUserId) ??
                                         false
-                                    ? Icons.bookmark
-                                    : Icons.bookmark_border,
+                                    ? Icons.favorite
+                                    : Icons.favorite_border_outlined,
                                 onTap: _handleSave,
                               ),
                             ],
@@ -416,7 +420,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                               planTitle: plan.title,
                             ),
                           );
-
                         },
                         icon: const Icon(
                           Icons.chat_bubble_outline,
@@ -435,9 +438,9 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                       ),
-                    ),
                     ),
                     const SizedBox(height: 10),
                   ],
