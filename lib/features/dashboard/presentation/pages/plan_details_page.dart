@@ -6,6 +6,7 @@ import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/plan_chat_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
@@ -400,9 +401,53 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                   top: BorderSide(color: Colors.white.withOpacity(0.08)),
                 ),
               ),
-              child: isCreator
-                  ? _buildCreatorActions(context, plan)
-                  : _buildJoinerActions(plan, isMember),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isCreator || isMember) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          AppRoutes.push(
+                            context,
+                            PlanChatScreen(
+                              planId: widget.planId,
+                              planTitle: plan.title,
+                            ),
+                          );
+
+                        },
+                        icon: const Icon(
+                          Icons.chat_bubble_outline,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'Group Chat',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primary),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  // ─── Edit/Delete or Join/Leave ──────────────────
+                  if (isCreator)
+                    _buildCreatorActions(context, plan)
+                  else
+                    _buildJoinerActions(plan, isMember),
+                ],
+              ),
             ),
           ),
         ],

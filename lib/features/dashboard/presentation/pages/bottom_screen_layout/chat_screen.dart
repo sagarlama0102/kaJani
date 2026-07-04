@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ChatScreen extends ConsumerStatefulWidget {
+class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends ConsumerState<ChatScreen> {
-
-  @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Scaffold(
+      backgroundColor: Color(0xff0F0F0F),
+      body: Center(
+        child: Text(
+          'Your Chats',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+    );
   }
 }
