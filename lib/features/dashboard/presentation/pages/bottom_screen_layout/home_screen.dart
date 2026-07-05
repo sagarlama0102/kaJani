@@ -80,7 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final userSession = ref.read(userSessionServiceProvider);
     final profilePicture =
         authState.uploadedPhotoUrl ??
-        userSession.getUserProfilePicture(); // 👈 use authState here
+        userSession.getUserProfilePicture(); 
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
