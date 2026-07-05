@@ -10,16 +10,15 @@ import 'package:kajani/features/chat/presentation/view_model/chat_view_model.dar
 class PlanChatScreen extends ConsumerStatefulWidget {
   final String planId;
   final String planTitle;
-  final String? planCoverImage;   
-  final List<String> memberIds;   
+  final String? planCoverImage;
+  final List<String> memberIds;
 
   const PlanChatScreen({
     super.key,
     required this.planId,
     required this.planTitle,
-    this.planCoverImage,         
-    this.memberIds = const [], 
-    
+    this.planCoverImage,
+    this.memberIds = const [],
   });
 
   @override
@@ -68,18 +67,18 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
 
     final text = _messageController.text.trim();
     _messageController.clear();
-    
 
-    await ref.read(chatViewModelProvider.notifier).sendMessage(
+    await ref
+        .read(chatViewModelProvider.notifier)
+        .sendMessage(
           planId: widget.planId,
           senderId: senderId,
           senderName: senderName,
           senderProfilePicture: profilePicture,
           text: text,
-          planTitle: widget.planTitle,           
+          planTitle: widget.planTitle,
           planCoverImage: widget.planCoverImage,
-          memberIds: widget.memberIds, 
-
+          memberIds: widget.memberIds,
         );
 
     // scroll to bottom after sending
@@ -92,89 +91,195 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
     final userSession = ref.read(userSessionServiceProvider);
     final currentUserId = userSession.getUserId() ?? '';
 
-    // scroll to bottom when new messages arrive
     ref.listen<ChatState>(chatViewModelProvider, (previous, next) {
       if (next.messages.length != previous?.messages.length) {
-        Future.delayed(
-          const Duration(milliseconds: 100),
-          _scrollToBottom,
-        );
+        Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
       }
     });
 
     return Scaffold(
       backgroundColor: const Color(0xff0F0F0F),
-      appBar: AppBar(
-        backgroundColor: const Color(0xff1A1A2E),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Colors.white, size: 18),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.planTitle,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xff0F0F0F),
+            border: Border(
+              bottom: BorderSide(color: Colors.white.withOpacity(0.06)),
             ),
-            Text(
-              'Group Chat',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 12,
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  // Plan avatar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: widget.planCoverImage != null
+                        ? Image.network(
+                            '${ApiEndpoints.baseUrlOnly}${widget.planCoverImage}',
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _appBarPlaceholder(),
+                          )
+                        : _appBarPlaceholder(),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.planTitle,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${widget.memberIds.length} members',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.45),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.info_outline,
+                      color: Colors.white.withOpacity(0.5),
+                      size: 20,
+                    ),
+                    onPressed: () {},
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
       body: Column(
         children: [
-          // ─── Messages List ────────────────────────────────────────
           Expanded(
             child: chatState.status == ChatStatus.loading
                 ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.primary,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   )
                 : chatState.messages.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        itemCount: chatState.messages.length,
-                        itemBuilder: (context, index) {
-                          final message = chatState.messages[index];
-                          final isMe = message.senderId == currentUserId;
-                          final showAvatar = index == 0 ||
-                              chatState.messages[index - 1].senderId !=
-                                  message.senderId;
+                ? _buildEmptyState()
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    itemCount: chatState.messages.length,
+                    itemBuilder: (context, index) {
+                      final message = chatState.messages[index];
+                      final isMe = message.senderId == currentUserId;
+                      final isFirst = index == 0;
+                      final prevMessage = isFirst
+                          ? null
+                          : chatState.messages[index - 1];
+                      final showAvatar =
+                          prevMessage == null ||
+                          prevMessage.senderId != message.senderId;
+                      final showDate =
+                          prevMessage == null ||
+                          !_isSameDay(prevMessage.createdAt, message.createdAt);
 
-                          return _buildMessageBubble(
+                      return Column(
+                        children: [
+                          if (showDate) _buildDateDivider(message.createdAt),
+                          _buildMessageBubble(
                             message: message,
                             isMe: isMe,
                             showAvatar: showAvatar,
-                          );
-                        },
-                      ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
           ),
-
-          // ─── Message Input ────────────────────────────────────────
           _buildMessageInput(chatState),
         ],
       ),
     );
+  }
+
+  // ─── App Bar Placeholder ──────────────────────────────────────────
+  Widget _appBarPlaceholder() {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withOpacity(0.4),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Icon(Icons.group_rounded, color: Colors.white, size: 22),
+    );
+  }
+
+  // ─── Date Divider ─────────────────────────────────────────────────
+  Widget _buildDateDivider(DateTime date) {
+    final now = DateTime.now();
+    String label;
+    if (_isSameDay(date, now)) {
+      label = 'Today';
+    } else if (_isSameDay(date, now.subtract(const Duration(days: 1)))) {
+      label = 'Yesterday';
+    } else {
+      label = '${date.day}/${date.month}/${date.year}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: Colors.white.withOpacity(0.08))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.35),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: Colors.white.withOpacity(0.08))),
+        ],
+      ),
+    );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   // ─── Message Bubble ───────────────────────────────────────────────
@@ -184,110 +289,125 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
     required bool showAvatar,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: showAvatar ? 12 : 2, top: 0),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // ─── Avatar (only for others) ──────────────────────────
           if (!isMe) ...[
-            if (showAvatar)
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary,
-                backgroundImage: message.senderProfilePicture != null
-                    ? NetworkImage(
-                        message.senderProfilePicture!.startsWith('http')
-                            ? message.senderProfilePicture!
-                            : '${ApiEndpoints.baseUrlOnly}${message.senderProfilePicture}',
-                      )
-                    : null,
-                child: message.senderProfilePicture == null
-                    ? Text(
-                        message.senderName.isNotEmpty
-                            ? message.senderName[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              )
-            else
-              const SizedBox(width: 32),
+            showAvatar
+                ? CircleAvatar(
+                    radius: 15,
+                    backgroundColor: AppColors.primary,
+                    backgroundImage: message.senderProfilePicture != null
+                        ? NetworkImage(
+                            message.senderProfilePicture!.startsWith('http')
+                                ? message.senderProfilePicture!
+                                : '${ApiEndpoints.baseUrlOnly}${message.senderProfilePicture}',
+                          )
+                        : null,
+                    child: message.senderProfilePicture == null
+                        ? Text(
+                            message.senderName.isNotEmpty
+                                ? message.senderName[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
+                  )
+                : const SizedBox(width: 30),
             const SizedBox(width: 8),
           ],
 
-          // ─── Bubble ────────────────────────────────────────────
           Flexible(
             child: Column(
               crossAxisAlignment: isMe
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
-                // sender name (only for others, only when avatar shown)
                 if (!isMe && showAvatar)
                   Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 2),
+                    padding: const EdgeInsets.only(left: 4, bottom: 3),
                     child: Text(
-                      message.senderName,
+                      message.senderName.split(' ').first,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                        color: AppColors.primary.withOpacity(0.8),
                         fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
 
                 Container(
                   constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7,
+                    maxWidth: MediaQuery.of(context).size.width * 0.72,
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: isMe
-                        ? AppColors.primary
-                        : const Color(0xff1A1A2E),
+                    color: isMe ? AppColors.primary : const Color(0xff1E1E35),
                     borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(isMe ? 16 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 16),
+                      topLeft: const Radius.circular(18),
+                      topRight: const Radius.circular(18),
+                      bottomLeft: Radius.circular(isMe ? 18 : 4),
+                      bottomRight: Radius.circular(isMe ? 4 : 18),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Text(
                     message.text,
                     style: TextStyle(
                       color: isMe
                           ? Colors.white
-                          : Colors.white.withOpacity(0.9),
+                          : Colors.white.withOpacity(0.92),
                       fontSize: 14,
+                      height: 1.4,
                     ),
                   ),
                 ),
 
-                // timestamp
                 Padding(
-                  padding: const EdgeInsets.only(top: 2, left: 4, right: 4),
-                  child: Text(
-                    _formatTime(message.createdAt),
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontSize: 10,
-                    ),
+                  padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatTime(message.createdAt),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.25),
+                          fontSize: 10,
+                        ),
+                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 3),
+                        Icon(
+                          Icons.done_all_rounded,
+                          size: 12,
+                          color: AppColors.primary.withOpacity(0.6),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-          if (isMe) const SizedBox(width: 8),
+          if (isMe) const SizedBox(width: 4),
         ],
       ),
     );
@@ -296,40 +416,51 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
   // ─── Message Input ────────────────────────────────────────────────
   Widget _buildMessageInput(ChatState chatState) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: const Color(0xff1A1A2E),
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.08)),
-        ),
+        color: const Color(0xff0F0F0F),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
       ),
       child: SafeArea(
         top: false,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // Text input
+            // Input field
             Expanded(
               child: Container(
+                constraints: const BoxConstraints(maxHeight: 120),
                 decoration: BoxDecoration(
-                  color: const Color(0xff0F0F0F),
+                  color: const Color(0xff1A1A2E),
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.08)),
                 ),
-                child: TextField(
-                  controller: _messageController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  maxLines: null,
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    hintStyle:
-                        TextStyle(color: Colors.white.withOpacity(0.3)),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                        maxLines: null,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                          hintText: 'Message...',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.25),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  onSubmitted: (_) => _sendMessage(),
+                  ],
                 ),
               ),
             ),
@@ -341,11 +472,19 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
               onTap: chatState.status == ChatStatus.sending
                   ? null
                   : _sendMessage,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(11),
+                decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: chatState.status == ChatStatus.sending
                     ? const SizedBox(
@@ -375,25 +514,32 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline_rounded,
-            color: Colors.white.withOpacity(0.2),
-            size: 64,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: AppColors.primary.withOpacity(0.5),
+              size: 44,
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'No messages yet',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Be the first to say something!',
+            'Be the first to say something! 👋',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withOpacity(0.4),
               fontSize: 13,
             ),
           ),

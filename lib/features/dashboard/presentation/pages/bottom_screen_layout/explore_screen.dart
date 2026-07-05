@@ -126,6 +126,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               height: 36,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
+                
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: _statusFilters.length,
                 itemBuilder: (context, index) {
