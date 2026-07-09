@@ -82,7 +82,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final currentUserId = ref.read(userSessionServiceProvider).getUserId();
 
     final plans = planState.plans;
-    
 
     return Scaffold(
       backgroundColor: const Color(0xff0F0F0F),
@@ -120,51 +119,47 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             ),
 
             const SizedBox(height: 16),
-
             // ─── Status Filter Tabs ──────────────────────────────────
-            SizedBox(
-              height: 36,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _statusFilters.length,
-                itemBuilder: (context, index) {
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: List.generate(_statusFilters.length, (index) {
                   final filter = _statusFilters[index];
                   final isSelected = _selectedStatus == filter['value'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedStatus = filter['value']!);
-                      _fetchPlans();
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : const Color(0xff1A1A2E),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        filter['label']!,
-                        style: TextStyle(
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedStatus = filter['value']!);
+                        _fetchPlans();
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: index < _statusFilters.length - 1 ? 8 : 0,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.6),
-                          fontSize: 13,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                              ? AppColors.primary
+                              : const Color(0xff1A1A2E),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          filter['label']!,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.6),
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
                         ),
                       ),
                     ),
                   );
-                },
+                }),
               ),
             ),
 
@@ -304,8 +299,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     onTap: () {
                       ref
                           .read(planViewModelProvider.notifier)
-                          .toggleSavePlan(plan.planId!,
-                          currentUserId: currentUserId,);
+                          .toggleSavePlan(
+                            plan.planId!,
+                            currentUserId: currentUserId,
+                          );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),
