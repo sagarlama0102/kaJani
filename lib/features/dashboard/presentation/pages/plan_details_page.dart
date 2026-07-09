@@ -96,9 +96,11 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   Future<void> _handleSave() async {
+    final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     await ref
         .read(planViewModelProvider.notifier)
-        .toggleSavePlan(widget.planId);
+        .toggleSavePlan(widget.planId,
+        currentUserId: currentUserId,);
     final isSaved = ref.read(planViewModelProvider).isSaved;
     if (isSaved == true) {
       SnackbarUtils.showSuccess(context, 'Plan saved!');

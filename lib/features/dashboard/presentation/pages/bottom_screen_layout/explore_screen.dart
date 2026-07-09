@@ -82,6 +82,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final currentUserId = ref.read(userSessionServiceProvider).getUserId();
 
     final plans = planState.plans;
+    
 
     return Scaffold(
       backgroundColor: const Color(0xff0F0F0F),
@@ -263,6 +264,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 
   Widget _buildPlanCard(PlanEntity plan, String? currentUserId) {
+    final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     final isSaved = plan.savedBy?.contains(currentUserId) ?? false;
 
     return GestureDetector(
@@ -302,7 +304,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     onTap: () {
                       ref
                           .read(planViewModelProvider.notifier)
-                          .toggleSavePlan(plan.planId!);
+                          .toggleSavePlan(plan.planId!,
+                          currentUserId: currentUserId,);
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),

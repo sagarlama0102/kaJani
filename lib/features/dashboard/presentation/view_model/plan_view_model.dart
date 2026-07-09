@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/domain/usecases/create_plan_usecase.dart';
 import 'package:kajani/features/dashboard/domain/usecases/delete_plan_usecase.dart';
 import 'package:kajani/features/dashboard/domain/usecases/get_all_plan_by_id_usecase.dart';
@@ -289,24 +290,64 @@ class PlanViewModel extends Notifier<PlanState> {
   }
 
   // ─── Toggle Save Plan ────────────────────────────────────────────
-  Future<void> toggleSavePlan(String planId) async {
-    state = state.copyWith(status: PlanStatus.loading);
+Future<void> toggleSavePlan(String planId, {String? currentUserId}) async {
+  state = state.copyWith(status: PlanStatus.loading);
 
-    final result = await _toggleSavePlanUsecase(
-      ToggleSavePlanParams(planId: planId),
-    );
+  final result = await _toggleSavePlanUsecase(
+    ToggleSavePlanParams(planId: planId),
+  );
 
-    result.fold(
-      (failure) => state = state.copyWith(
-        status: PlanStatus.error,
-        errorMessage: failure.message,
-      ),
-      (isSaved) => state = state.copyWith(
+  result.fold(
+    (failure) => state = state.copyWith(
+      status: PlanStatus.error,
+      errorMessage: failure.message,
+    ),
+    (isSaved) {
+      // update plans list locally
+      List<PlanEntity> updateList(List<PlanEntity> plans) {
+        return plans.map((p) {
+          if (p.planId == planId && currentUserId != null) {
+            final currentSavedBy = List<String>.from(p.savedBy ?? []);
+            if (isSaved) {
+              if (!currentSavedBy.contains(currentUserId)) {
+                currentSavedBy.add(currentUserId);
+              }
+            } else {
+              currentSavedBy.remove(currentUserId);
+            }
+            return PlanEntity(
+              planId: p.planId,
+              title: p.title,
+              description: p.description,
+              category: p.category,
+              coverImage: p.coverImage,
+              location: p.location,
+              date: p.date,
+              time: p.time,
+              endTime: p.endTime,
+              endDate: p.endDate,
+              status: p.status,
+              isPublic: p.isPublic,
+              maxMembers: p.maxMembers,
+              creatorId: p.creatorId,
+              members: p.members,
+              memberDetails: p.memberDetails,
+              savedBy: currentSavedBy,
+            );
+          }
+          return p;
+        }).toList();
+      }
+
+      state = state.copyWith(
         status: PlanStatus.saved,
         isSaved: isSaved,
-      ),
-    );
-  }
+        plans: updateList(state.plans),
+        savedPlans: updateList(state.savedPlans),
+      );
+    },
+  );
+}
 
   // ─── Reset Error ─────────────────────────────────────────────────
   void resetError() {
