@@ -44,49 +44,54 @@ class SnackbarUtils {
     required Color accentColor,
     required IconData icon,
   }) {
-    ScaffoldMessenger.of(context).clearSnackBars(); // avoid stacking
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            // ─── Accent icon container ──────────────────────────
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: accentColor.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
+    // 👈 wait for the widget tree to settle before showing
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 👈 maybeOf returns null instead of throwing if the Scaffold is gone
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
               ),
-              child: Icon(icon, color: accentColor, size: 20),
-            ),
-            const SizedBox(width: 12),
-            // ─── Message ────────────────────────────────────────
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                  height: 1.3,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    height: 1.3,
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xff1A1A2E), // matches app surface
-        behavior: SnackBarBehavior.floating,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: BorderSide(
-            color: accentColor.withOpacity(0.3), // subtle accent border
-            width: 1,
+            ],
           ),
+          backgroundColor: const Color(0xff1A1A2E),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: accentColor.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          duration: const Duration(seconds: 2),
         ),
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
+    });
   }
 }

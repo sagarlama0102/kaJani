@@ -21,7 +21,7 @@ void main() async {
   );
   await Firebase.initializeApp();
   await GoogleSignIn.instance.initialize(
-    // clientId: '387828142161-425pd0emp6tr17qpq6osqo8pj2rf834t.apps.googleusercontent.com'
+    serverClientId: '387828142161-425pd0emp6tr17qpq6osqo8pj2rf834t.apps.googleusercontent.com'
   );
   await HiveService().init();
 

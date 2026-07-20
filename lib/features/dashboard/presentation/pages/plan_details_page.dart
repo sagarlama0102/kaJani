@@ -130,7 +130,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     final plan = planState.selectedPlan;
 
-    if (planState.status == PlanStatus.loading || plan == null) {
+    if (plan == null) {
       return const Scaffold(
         backgroundColor: Color(0xff0F0F0F),
         body: Center(
@@ -152,7 +152,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ─── Cover Image with back/save icons ───────────
+                  
                   Stack(
                     children: [
                       Container(
