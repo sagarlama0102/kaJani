@@ -25,6 +25,58 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     });
   }
 
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    return '${dateTime.day} ${_monthName(dateTime.month)}';
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+
+  void _showClearAllDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xff1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Clear all notifications?',
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
+        content: Text(
+          'This will remove all your notifications permanently.',
+          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: implement clear all in backend
+              // ref.read(notificationViewModelProvider.notifier).clearAll();
+            },
+            child: Text('Clear All', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final notificationState = ref.watch(notificationViewModelProvider);
@@ -33,10 +85,11 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       backgroundColor: const Color(0xff0F0F0F),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ─── Header ───────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -44,59 +97,49 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                     'Notifications',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  if (notificationState.unreadCount > 0)
-                    TextButton(
-                      onPressed: () {
-                        ref
-                            .read(notificationViewModelProvider.notifier)
-                            .markAllAsRead();
-                      },
-                      child: const Text(
-                        'Mark all read',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 13,
+                  // ─── Actions ──────────────────────────────────
+                  Row(
+                    children: [
+                      if (notificationState.unreadCount > 0)
+                        GestureDetector(
+                          onTap: () => ref
+                              .read(notificationViewModelProvider.notifier)
+                              .markAllAsRead(),
+                          child: Text(
+                            'Mark all read',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      if (notificationState.notifications.isNotEmpty) ...[
+                        const SizedBox(width: 14),
+                        GestureDetector(
+                          onTap: _showClearAllDialog,
+                          child: Text(
+                            'Clear all',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.4),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
-
-            // ─── Unread count badge ────────────────────────────────
-            if (notificationState.unreadCount > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${notificationState.unreadCount} unread',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
             // ─── Notifications List ────────────────────────────────
             Expanded(
@@ -110,16 +153,16 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           color: AppColors.primary,
-                          onRefresh: () async {
-                            ref
-                                .read(notificationViewModelProvider.notifier)
-                                .getNotifications();
-                          },
+                          backgroundColor: const Color(0xff1A1A2E),
+                          onRefresh: () async => ref
+                              .read(notificationViewModelProvider.notifier)
+                              .getNotifications(),
                           child: ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            itemCount: notificationState.notifications.length,
+                            padding: EdgeInsets.zero,
+                            itemCount:
+                                notificationState.notifications.length,
                             itemBuilder: (context, index) {
-                              return _buildNotificationCard(
+                              return _buildNotificationRow(
                                 notificationState.notifications[index],
                               );
                             },
@@ -132,19 +175,17 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
   }
 
-  // ─── Notification Card ────────────────────────────────────────────
-  Widget _buildNotificationCard(NotificationEntity notification) {
+  // ─── Notification Row ─────────────────────────────────────────────
+  Widget _buildNotificationRow(NotificationEntity notification) {
     final isRead = notification.isRead;
 
     return GestureDetector(
       onTap: () {
-        // mark as read
         if (!isRead) {
           ref
               .read(notificationViewModelProvider.notifier)
               .markAsRead(notification.id);
         }
-        // navigate to plan detail
         if (notification.planId.isNotEmpty) {
           AppRoutes.push(
             context,
@@ -153,146 +194,161 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         }
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
           color: isRead
-              ? const Color(0xff1A1A2E)
-              : AppColors.primary.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isRead
-                ? Colors.transparent
-                : AppColors.primary.withOpacity(0.3),
+              ? Colors.transparent
+              : AppColors.primary.withOpacity(0.04),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.05),
+              width: 1,
+            ),
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Sender Avatar ──────────────────────────────────
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: AppColors.primary,
-              backgroundImage: notification.senderProfilePicture != null
-                  ? NetworkImage(
-                      notification.senderProfilePicture!.startsWith('http')
-                          ? notification.senderProfilePicture!
-                          : '${ApiEndpoints.baseUrlOnly}${notification.senderProfilePicture}',
+            // ─── Plan Cover Image ──────────────────────────────
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: notification.planCoverImage != null
+                  ? Image.network(
+                      '${ApiEndpoints.baseUrlOnly}${notification.planCoverImage}',
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _imagePlaceholder(),
                     )
-                  : null,
-              child: notification.senderProfilePicture == null
-                  ? Text(
-                      notification.senderFirstName?.isNotEmpty == true
-                          ? notification.senderFirstName![0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
+                  : _senderAvatar(notification),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
 
             // ─── Content ────────────────────────────────────────
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Message
-                  Text(
-                    notification.message,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight:
-                          isRead ? FontWeight.normal : FontWeight.w600,
-                    ),
-                  ),
+                  // Message text with bold plan name
+                  _buildMessageText(notification),
 
-                  const SizedBox(height: 6),
-
-                  // Plan card (if available)
-                  if (notification.planTitle != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff0F0F0F),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          // Plan cover image
-                          if (notification.planCoverImage != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: Image.network(
-                                '${ApiEndpoints.baseUrlOnly}${notification.planCoverImage}',
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    _planImagePlaceholder(),
-                              ),
-                            )
-                          else
-                            _planImagePlaceholder(),
-
-                          const SizedBox(width: 8),
-
-                          Expanded(
-                            child: Text(
-                              notification.planTitle!,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white.withOpacity(0.3),
-                            size: 12,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 5),
 
                   // Time
                   Text(
                     _formatTime(notification.createdAt),
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 11,
+                      color: Colors.white.withOpacity(0.35),
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
 
+            const SizedBox(width: 10),
+
             // ─── Unread dot ─────────────────────────────────────
             if (!isRead)
-              Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              ),
+              )
+            else
+              const SizedBox(width: 8),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── Message Text with bold plan name ────────────────────────────
+  Widget _buildMessageText(NotificationEntity notification) {
+    final message = notification.message;
+    final planTitle = notification.planTitle ?? '';
+
+    if (planTitle.isNotEmpty && message.contains(planTitle)) {
+      final parts = message.split(planTitle);
+      return RichText(
+        text: TextSpan(
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.85),
+            fontSize: 14,
+            height: 1.4,
+          ),
+          children: [
+            TextSpan(text: parts[0]),
+            TextSpan(
+              text: planTitle,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (parts.length > 1) TextSpan(text: parts[1]),
+          ],
+        ),
+      );
+    }
+
+    return Text(
+      message,
+      style: TextStyle(
+        color: Colors.white.withOpacity(0.85),
+        fontSize: 14,
+        height: 1.4,
+      ),
+    );
+  }
+
+  // ─── Sender Avatar (fallback) ─────────────────────────────────────
+  Widget _senderAvatar(NotificationEntity notification) {
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: AppColors.primary,
+      backgroundImage: notification.senderProfilePicture != null
+          ? NetworkImage(
+              notification.senderProfilePicture!.startsWith('http')
+                  ? notification.senderProfilePicture!
+                  : '${ApiEndpoints.baseUrlOnly}${notification.senderProfilePicture}',
+            )
+          : null,
+      child: notification.senderProfilePicture == null
+          ? Text(
+              notification.senderFirstName?.isNotEmpty == true
+                  ? notification.senderFirstName![0].toUpperCase()
+                  : '?',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            )
+          : null,
+    );
+  }
+
+  // ─── Image Placeholder ────────────────────────────────────────────
+  Widget _imagePlaceholder() {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Icon(
+        Icons.event_outlined,
+        color: AppColors.primary,
+        size: 24,
       ),
     );
   }
@@ -303,18 +359,25 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.notifications_none_outlined,
-            color: Colors.white.withOpacity(0.2),
-            size: 64,
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.notifications_none_outlined,
+              color: AppColors.primary.withOpacity(0.5),
+              size: 48,
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             'No notifications yet',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
@@ -322,37 +385,13 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
             'When someone joins your plan\nyou\'ll see it here',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
-              fontSize: 13,
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 14,
+              height: 1.5,
             ),
           ),
         ],
       ),
     );
-  }
-
-  // ─── Plan Image Placeholder ───────────────────────────────────────
-  Widget _planImagePlaceholder() {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: const Icon(Icons.image_outlined, color: AppColors.primary, size: 16),
-    );
-  }
-
-  // ─── Format Time ──────────────────────────────────────────────────
-  String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }

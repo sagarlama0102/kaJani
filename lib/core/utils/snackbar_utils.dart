@@ -6,7 +6,7 @@ class SnackbarUtils {
     _showSnackBar(
       context,
       message,
-      backgroundColor: AppColors.error,
+      accentColor: AppColors.error,
       icon: Icons.error_outline_rounded,
     );
   }
@@ -15,7 +15,7 @@ class SnackbarUtils {
     _showSnackBar(
       context,
       message,
-      backgroundColor: AppColors.success,
+      accentColor: AppColors.success,
       icon: Icons.check_circle_outline_rounded,
     );
   }
@@ -24,7 +24,7 @@ class SnackbarUtils {
     _showSnackBar(
       context,
       message,
-      backgroundColor: AppColors.primary,
+      accentColor: AppColors.primary,
       icon: Icons.info_outline_rounded,
     );
   }
@@ -33,7 +33,7 @@ class SnackbarUtils {
     _showSnackBar(
       context,
       message,
-      backgroundColor: const Color(0xFFFFA726),
+      accentColor: const Color(0xFFFFA726),
       icon: Icons.warning_amber_rounded,
     );
   }
@@ -41,33 +41,57 @@ class SnackbarUtils {
   static void _showSnackBar(
     BuildContext context,
     String message, {
-    required Color backgroundColor,
+    required Color accentColor,
     required IconData icon,
   }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 24),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
+    // 👈 wait for the widget tree to settle before showing
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 👈 maybeOf returns null instead of throwing if the Scaffold is gone
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+
+      messenger.clearSnackBars();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    height: 1.3,
+                  ),
                 ),
               ),
+            ],
+          ),
+          backgroundColor: const Color(0xff1A1A2E),
+          behavior: SnackBarBehavior.floating,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(
+              color: accentColor.withOpacity(0.3),
+              width: 1,
             ),
-          ],
+          ),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          duration: const Duration(seconds: 2),
         ),
-        backgroundColor: backgroundColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      );
+    });
   }
 }

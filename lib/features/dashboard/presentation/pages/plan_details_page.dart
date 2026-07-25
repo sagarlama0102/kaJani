@@ -6,6 +6,7 @@ import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/plan_chat_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
@@ -95,9 +96,11 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   Future<void> _handleSave() async {
+    final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     await ref
         .read(planViewModelProvider.notifier)
-        .toggleSavePlan(widget.planId);
+        .toggleSavePlan(widget.planId,
+        currentUserId: currentUserId,);
     final isSaved = ref.read(planViewModelProvider).isSaved;
     if (isSaved == true) {
       SnackbarUtils.showSuccess(context, 'Plan saved!');
@@ -127,7 +130,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     final plan = planState.selectedPlan;
 
-    if (planState.status == PlanStatus.loading || plan == null) {
+    if (plan == null) {
       return const Scaffold(
         backgroundColor: Color(0xff0F0F0F),
         body: Center(
@@ -149,14 +152,18 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ─── Cover Image with back/save icons ───────────
+                  
                   Stack(
                     children: [
                       Container(
-                        height: 320,
+                        height: 240,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: const Color(0xff1A1A2E),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          ),
                           image: plan.coverImage != null
                               ? DecorationImage(
                                   image: NetworkImage(
@@ -193,8 +200,8 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                                 icon:
                                     plan.savedBy?.contains(currentUserId) ??
                                         false
-                                    ? Icons.bookmark
-                                    : Icons.bookmark_border,
+                                    ? Icons.favorite
+                                    : Icons.favorite_border_outlined,
                                 onTap: _handleSave,
                               ),
                             ],
@@ -251,6 +258,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           icon: Icons.calendar_today_outlined,
                           title: plan.date,
                           subtitle: plan.time,
+                          trailingIcon: Icons.edit_calendar_outlined,
                         ),
 
                         const SizedBox(height: 12),
@@ -260,6 +268,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           icon: Icons.location_on_outlined,
                           title: plan.location,
                           subtitle: null,
+                          trailingIcon: Icons.map_outlined,
                         ),
 
                         const SizedBox(height: 12),
@@ -271,6 +280,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                               ? '${plan.members?.length ?? 0} / ${plan.maxMembers} members'
                               : '${plan.members?.length ?? 0} members joined',
                           subtitle: null,
+                          trailingIcon: Icons.arrow_forward_ios,
                         ),
 
                         if (isCreator &&
@@ -393,16 +403,154 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
           SafeArea(
             top: false,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
               decoration: BoxDecoration(
                 color: const Color(0xff0F0F0F),
                 border: Border(
                   top: BorderSide(color: Colors.white.withOpacity(0.08)),
                 ),
               ),
-              child: isCreator
-                  ? _buildCreatorActions(context, plan)
-                  : _buildJoinerActions(plan, isMember),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ─── Group Chat Button ──────────────────────────────
+                  if (isCreator || isMember) ...[
+                    GestureDetector(
+                      onTap: () {
+                        AppRoutes.push(
+                          context,
+                          PlanChatScreen(
+                            planId: widget.planId,
+                            planTitle: plan.title,
+                            planCoverImage: plan.coverImage,
+                            memberIds: plan.members ?? [],  
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff1A1A2E),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_rounded,
+                              color: AppColors.primary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Group Chat',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  // ─── Creator Actions ────────────────────────────────
+                  if (isCreator)
+                    Row(
+                      children: [
+                        // Edit Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              await AppRoutes.push(
+                                context,
+                                CreatePlanPage(existingPlan: plan),
+                              );
+                              ref
+                                  .read(planViewModelProvider.notifier)
+                                  .getPlanById(widget.planId);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff1A1A2E),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.4),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    color: AppColors.primary,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Delete Button
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => _handleDelete(context),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.error.withOpacity(0.4),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.delete_outline,
+                                    color: AppColors.error,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: AppColors.error,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  // ─── Joiner Actions ─────────────────────────────────
+                  else
+                    _buildJoinerActions(plan, isMember),
+                ],
+              ),
             ),
           ),
         ],
@@ -475,56 +623,67 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     );
   }
 
-  // ─── Joiner Actions (Join / Leave) ────────────────────────────────
   Widget _buildJoinerActions(PlanEntity plan, bool isMember) {
     final isFull =
         plan.maxMembers != null &&
         (plan.members?.length ?? 0) >= plan.maxMembers!;
 
-    return Row(
-      children: [
-        // Price/status label (left side, like "Free" in reference)
-        Expanded(
-          child: Text(
-            isMember
-                ? 'You\'re going'
-                : (isFull ? 'Plan full' : 'Open to join'),
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+    return GestureDetector(
+      onTap: isMember ? _handleLeave : (isFull ? null : _handleJoin),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isMember
+              ? AppColors.error.withOpacity(0.1)
+              : isFull
+              ? Colors.grey.withOpacity(0.1)
+              : AppColors.primary,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isMember
+                ? AppColors.error.withOpacity(0.4)
+                : isFull
+                ? Colors.grey.withOpacity(0.3)
+                : Colors.transparent,
           ),
         ),
-        // Join/Leave button (right side, like "Attend" in reference)
-        SizedBox(
-          width: 160,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: isMember ? _handleLeave : (isFull ? null : _handleJoin),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isMember
-                  ? const Color(0xff1A1A2E)
-                  : AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-                side: isMember
-                    ? const BorderSide(color: AppColors.error)
-                    : BorderSide.none,
-              ),
-              elevation: 0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isMember
+                  ? Icons.exit_to_app_rounded
+                  : isFull
+                  ? Icons.block_rounded
+                  : Icons.check_circle_outline_rounded,
+              color: isMember
+                  ? AppColors.error
+                  : isFull
+                  ? Colors.grey
+                  : Colors.white,
+              size: 18,
             ),
-            child: Text(
-              isMember ? 'Leave' : (isFull ? 'Full' : 'Join'),
+            const SizedBox(width: 8),
+            Text(
+              isMember
+                  ? 'Leave Plan'
+                  : isFull
+                  ? 'Plan is Full'
+                  : 'Join Plan',
               style: TextStyle(
-                color: isMember ? AppColors.error : Colors.white,
+                color: isMember
+                    ? AppColors.error
+                    : isFull
+                    ? Colors.grey
+                    : Colors.white,
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -550,9 +709,10 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     required IconData icon,
     required String title,
     String? subtitle,
+    IconData? trailingIcon,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xff1A1A2E),
         borderRadius: BorderRadius.circular(14),
@@ -593,6 +753,8 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               ],
             ),
           ),
+          if (trailingIcon != null)
+            Icon(trailingIcon, color: Colors.white.withOpacity(0.3), size: 18),
         ],
       ),
     );

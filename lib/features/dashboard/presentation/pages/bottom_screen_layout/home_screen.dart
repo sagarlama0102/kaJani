@@ -75,47 +75,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ─── Header ───────────────────────────────────────────────────────
-Widget _buildHeader(String firstName) {
-  final authState = ref.watch(authViewModelProvider);
-  final userSession = ref.read(userSessionServiceProvider);
-  final profilePicture = authState.uploadedPhotoUrl ?? userSession.getUserProfilePicture(); // 👈 use authState here
+  Widget _buildHeader(String firstName) {
+    final authState = ref.watch(authViewModelProvider);
+    final userSession = ref.read(userSessionServiceProvider);
+    final profilePicture =
+        authState.uploadedPhotoUrl ??
+        userSession.getUserProfilePicture(); 
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        'KaJani',
-        style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-      ),
-      GestureDetector(
-        onTap: () {
-          AppRoutes.push(context, const ProfilePage());
-        },
-        child: CircleAvatar(
-          radius: 20,
-          backgroundColor: AppColors.primary,
-          backgroundImage: profilePicture != null
-              ? NetworkImage(
-                  profilePicture.startsWith('http')
-                      ? profilePicture
-                      : '${ApiEndpoints.baseUrlOnly}$profilePicture',
-                )
-              : null,
-          child: profilePicture == null
-              ? Text(
-                  firstName[0].toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                )
-              : null,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'KaJani',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
-    ],
-  );
-}
+        GestureDetector(
+          onTap: () {
+            AppRoutes.push(context, const ProfilePage());
+          },
+          child: CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.primary,
+            backgroundImage: profilePicture != null
+                ? NetworkImage(
+                    profilePicture.startsWith('http')
+                        ? profilePicture
+                        : '${ApiEndpoints.baseUrlOnly}$profilePicture',
+                  )
+                : null,
+            child: profilePicture == null
+                ? Text(
+                    firstName[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ],
+    );
+  }
 
   // ─── Your Groups Section ──────────────────────────────────────────
   Widget _buildYourGroupsSection(PlanState planState) {
@@ -346,7 +352,6 @@ Widget _buildHeader(String firstName) {
 
         const SizedBox(height: 16),
 
-        // ─── Today Label ───────────────────────────────────────────
         Text(
           'TODAY',
           style: TextStyle(
@@ -457,7 +462,9 @@ Widget _buildHeader(String firstName) {
         AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(
+          bottom: 24,
+        ), // Slightly more breathing room
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -472,38 +479,97 @@ Widget _buildHeader(String firstName) {
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      height: 1.2, // Clean multi-line spacing
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     '${plan.date} • ${plan.time}',
-                    style: TextStyle(color: AppColors.primary, fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(
+                        0.6,
+                      ), // Matched to design color
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     plan.location,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.4),
+                      fontSize: 13,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  // Members count
+                  const SizedBox(height: 12),
+
+                  // ─── Dynamic Stacked Avatars & Going Count ──────────────────
                   Row(
                     children: [
-                      Icon(
-                        Icons.people_outline,
-                        color: Colors.white.withOpacity(0.5),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
+                      if (plan.memberDetails != null &&
+                          plan.memberDetails!.isNotEmpty) ...[
+                        SizedBox(
+                          width: plan.memberDetails!.length == 1 ? 22 : 38,
+                          height: 22,
+                          child: Stack(
+                            children: List.generate(
+                              plan.memberDetails!.length > 2
+                                  ? 2
+                                  : plan.memberDetails!.length,
+                              (index) {
+                                final member = plan.memberDetails![index];
+                                return Positioned(
+                                  left: index * 12.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 9,
+                                      backgroundColor: AppColors.primary,
+                                      backgroundImage:
+                                          member.profilePicture != null
+                                          ? NetworkImage(
+                                              member.profilePicture!.startsWith(
+                                                    'http',
+                                                  )
+                                                  ? member.profilePicture!
+                                                  : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
+                                            )
+                                          : null,
+                                      child: member.profilePicture == null
+                                          ? Text(
+                                              member.firstName.isNotEmpty
+                                                  ? member.firstName[0]
+                                                        .toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 8,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       Text(
                         '${plan.members?.length ?? 0} going',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 12,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -512,16 +578,16 @@ Widget _buildHeader(String firstName) {
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
 
-            // ─── Cover Image ────────────────────────────────────────
+            // ─── Cover Image (Rectangular 120x72 to match aspect ratio) ───
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               child: plan.coverImage != null
                   ? Image.network(
                       '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                      width: 90,
-                      height: 90,
+                      width: 120,
+                      height: 72,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _buildEventPlaceholder(),
                     )
@@ -536,16 +602,16 @@ Widget _buildHeader(String firstName) {
   // ─── Event Placeholder ────────────────────────────────────────────
   Widget _buildEventPlaceholder() {
     return Container(
-      width: 90,
-      height: 90,
+      width: 120,
+      height: 72,
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: const Icon(
         Icons.image_outlined,
         color: AppColors.primary,
-        size: 30,
+        size: 24,
       ),
     );
   }

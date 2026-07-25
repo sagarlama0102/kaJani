@@ -81,7 +81,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final planState = ref.watch(planViewModelProvider);
     final currentUserId = ref.read(userSessionServiceProvider).getUserId();
 
-    // Filter out plans created by the current user (optional — explore is for others' plans)
     final plans = planState.plans;
 
     return Scaffold(
@@ -120,50 +119,47 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             ),
 
             const SizedBox(height: 16),
-
             // ─── Status Filter Tabs ──────────────────────────────────
-            SizedBox(
-              height: 36,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _statusFilters.length,
-                itemBuilder: (context, index) {
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: List.generate(_statusFilters.length, (index) {
                   final filter = _statusFilters[index];
                   final isSelected = _selectedStatus == filter['value'];
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedStatus = filter['value']!);
-                      _fetchPlans();
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary
-                            : const Color(0xff1A1A2E),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        filter['label']!,
-                        style: TextStyle(
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _selectedStatus = filter['value']!);
+                        _fetchPlans();
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: index < _statusFilters.length - 1 ? 8 : 0,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.6),
-                          fontSize: 13,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                              ? AppColors.primary
+                              : const Color(0xff1A1A2E),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          filter['label']!,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.6),
+                            fontSize: 13,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
                         ),
                       ),
                     ),
                   );
-                },
+                }),
               ),
             ),
 
@@ -262,8 +258,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
-  // ─── Plan Card ──────────────────────────────────────────────────────
   Widget _buildPlanCard(PlanEntity plan, String? currentUserId) {
+    final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     final isSaved = plan.savedBy?.contains(currentUserId) ?? false;
 
     return GestureDetector(
@@ -271,9 +267,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: const EdgeInsets.only(bottom: 24),
         decoration: BoxDecoration(
-          color: const Color(0xff1A1A2E),
+          color: const Color(0xff0F0F0F), // Dark mode matching screen capture
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -283,14 +279,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
-                  ),
+                  borderRadius: BorderRadius.circular(
+                    20,
+                  ), // Matches image roundings completely
                   child: plan.coverImage != null
                       ? Image.network(
                           '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                           width: double.infinity,
-                          height: 180,
+                          height: 190,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _imagePlaceholder(),
                         )
@@ -303,18 +299,26 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     onTap: () {
                       ref
                           .read(planViewModelProvider.notifier)
-                          .toggleSavePlan(plan.planId!);
+                          .toggleSavePlan(
+                            plan.planId!,
+                            currentUserId: currentUserId,
+                          );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: const Color.fromARGB(
+                          255,
+                          69,
+                          69,
+                          69,
+                        ).withOpacity(0.4),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isSaved ? Icons.favorite : Icons.favorite_border,
                         color: isSaved ? AppColors.error : Colors.white,
-                        size: 18,
+                        size: 20,
                       ),
                     ),
                   ),
@@ -324,65 +328,114 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
             // ─── Content ────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 1. Title
                   Text(
                     plan.title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 19,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
+
+                  // 2. Date & Time (Orange/Amber accent styling)
                   Text(
                     '${plan.date} • ${plan.time}',
                     style: const TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 12,
+                      color: Colors
+                          .orangeAccent, // Matches the screenshot text color
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white.withOpacity(0.5),
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          plan.location,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+
+                  const SizedBox(height: 6),
+
+                  // 4. Rating Row
                   const SizedBox(height: 10),
+
+                  // 5. Overlapping Going/Members Stack Section
                   Row(
                     children: [
-                      Icon(
-                        Icons.people_outline,
-                        color: Colors.white.withOpacity(0.5),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
+                      if (plan.memberDetails != null &&
+                          plan.memberDetails!.isNotEmpty) ...[
+                        SizedBox(
+                          width: plan.memberDetails!.length == 1 ? 22 : 38,
+                          height: 24,
+                          child: Stack(
+                            children: List.generate(
+                              plan.memberDetails!.length > 2
+                                  ? 2
+                                  : plan.memberDetails!.length,
+                              (index) {
+                                final member = plan.memberDetails![index];
+                                return Positioned(
+                                  left: index * 12.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      radius: 9,
+                                      backgroundColor: AppColors.primary,
+                                      backgroundImage:
+                                          member.profilePicture != null
+                                          ? NetworkImage(
+                                              member.profilePicture!.startsWith(
+                                                    'http',
+                                                  )
+                                                  ? member.profilePicture!
+                                                  : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
+                                            )
+                                          : null,
+                                      child: member.profilePicture == null
+                                          ? Text(
+                                              member.firstName.isNotEmpty
+                                                  ? member.firstName[0]
+                                                        .toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 8,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                       Text(
                         '${plan.members?.length ?? 0} going',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${plan.members?.length ?? 53} going',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
