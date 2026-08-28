@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
+import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
@@ -107,7 +108,7 @@ Future<void> _navigateToNext() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -115,17 +116,13 @@ Future<void> _navigateToNext() async {
             position: _slideAnimation,
             child: ScaleTransition(
               scale: _scaleAnimation,
-              child: SizedBox(
-                height: 200,
-                width: 200,
-
-                child: Image.asset(
-                  'assets/images/kajanilogodark.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.error),
-                ),
-              ),
+              child: Text("KaJani",
+              style: TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+                letterSpacing: -1.2,
+              )),
             ),
           ),
         ),

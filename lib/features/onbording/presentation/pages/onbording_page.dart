@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:kajani/app/routes/app_routes.dart';
+import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/onbording/presentation/widgets/onbording_content.dart';
 import 'package:kajani/features/onbording/presentation/widgets/page_indicator.dart';
@@ -9,12 +10,10 @@ class OnboardingPageData {
   final String title;
   final String description;
   final String imagePath;
-  final IconData icon;
 
   OnboardingPageData({
     required this.title,
     required this.imagePath,
-    required this.icon,
     required this.description,
   });
 }
@@ -34,17 +33,14 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
     OnboardingPageData(
       title: "Discover Plans",
       description: "Explore events and activites \nhappening around you",
-      imagePath: 'assets/images/onboardingdarkone.png',
-      icon: Icons.explore_outlined,
+      imagePath: 'assets/images/v1onboardingscreen.png',
     ),
     OnboardingPageData(
       title: "Connect with People",
       description:
           "Share interests and make \nreal connection with like-minded people",
-      imagePath: 'assets/images/onboardingdarktwo.png',
-      icon: Icons.groups_outlined,
+      imagePath: 'assets/images/v1onboardingscreentwo.png',
     ),
-    
   ];
 
   void _onPageChanged(int index) {
@@ -54,87 +50,97 @@ class _OnbordingPageState extends ConsumerState<OnbordingPage> {
   }
 
   void _navigateToLogin() {
-    // Using your teacher's preferred routing method
     AppRoutes.pushReplacement(context, const LoginPage());
+  }
+
+  void _nextPage() {
+    if (_currentPage == _pages.length - 1) {
+      _navigateToLogin();
+      return;
+    }
+
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            PageView.builder(
-              controller: _pageController,
-              onPageChanged: _onPageChanged,
-              itemCount: _pages.length,
-              itemBuilder: (context, index) {
-                return OnbordingContent(item: _pages[index]);
-              },
-            ),
-        
-            Positioned(
-              top: 10,
-              right: 20,
-              child: TextButton(
-                onPressed: _navigateToLogin,
-                child: Text("Skip", style: TextStyle(color: Colors.white)),
-              ),
-            ),
-            Positioned(
-              bottom: 50,
-              left: 0,
-              right: 0,
-              
-              child: Column(
-                children: [
-                  // Your custom dots widget
-                  PageIndicator(
-                    itemCount: _pages.length,
-                    currentPage: _currentPage,
-                    activeColor: const Color(0xff6B4EFF), // Your brand green
-                  ),
-                  const SizedBox(height: 20),
-        
-                  // Next / Get Started Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff6B4EFF),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (_currentPage == _pages.length - 1) {
-                            _navigateToLogin();
-                          } else {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 400),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        },
-                        child: Text(
-                          _currentPage == _pages.length - 1
-                              ? "GET STARTED"
-                              : "NEXT",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20, top: 8),
+                child: TextButton(
+                  onPressed: _navigateToLogin,
+                  child: const Text(
+                    "Skip",
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                ],
+                ),
               ),
             ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: _pages.length,
+                itemBuilder: (context, index) {
+                  return OnbordingContent(item: _pages[index]);
+                },
+              ),
+            ),
+            PageIndicator(
+              itemCount: _pages.length,
+              currentPage: _currentPage,
+              activeColor: AppColors.primary,
+            ),
+
+            const SizedBox(height: 24),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _nextPage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    _currentPage == _pages.length - 1
+                        ? "Get Started"
+                        : "Continue",
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),
