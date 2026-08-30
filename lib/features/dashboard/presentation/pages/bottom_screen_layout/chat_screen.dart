@@ -49,7 +49,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatList = chatState.chatList;
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+     
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

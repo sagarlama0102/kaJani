@@ -21,12 +21,9 @@ abstract interface class IAuthLocalDatasource {
 // ─── Remote Datasource Interface ──────────────────────────────────
 abstract interface class IAuthRemoteDataSource {
   Future<(AuthApiModel, UserApiModel)> register({
-    required String firstName,
-    required String lastName,
+
     required String email,
-    required String username,
     required String password,
-    String? phoneNumber,
   });
 
   Future<(AuthApiModel, UserApiModel)> login({
@@ -41,4 +38,10 @@ abstract interface class IAuthRemoteDataSource {
   Future<void> logout();
 
   Future<String> uploadPhoto(File photo);
+
+  Future<(AuthApiModel, UserApiModel)> completeProfile({
+    required String firstName,
+    required String lastName,
+    required String username,
+  });
 }

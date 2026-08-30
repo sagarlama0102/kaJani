@@ -41,7 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final firstName = userSession.getUserFirstName() ?? 'User';
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),

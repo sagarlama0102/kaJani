@@ -98,7 +98,7 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Container(

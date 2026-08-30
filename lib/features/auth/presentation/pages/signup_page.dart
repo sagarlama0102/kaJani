@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
@@ -39,7 +40,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
   Future<void> _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authViewModelProvider.notifier).register(
+      await ref
+          .read(authViewModelProvider.notifier)
+          .register(
             firstName: _firstNameController.text.trim(),
             lastName: _lastNameController.text.trim(),
             email: _emailController.text.trim(),
@@ -60,18 +63,18 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+      hintStyle: TextStyle(color: context.textTertiary),
       filled: true,
-      fillColor: const Color(0xff1A1A2E),
-      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5), size: 20),
+      fillColor: context.inputFillColor,
+      prefixIcon: Icon(icon, color: context.textSecondary, size: 20),
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -97,7 +100,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: context.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -107,7 +110,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             Text(
               "(optional)",
               style: TextStyle(
-                color: Colors.white.withOpacity(0.3),
+                color: context.textTertiary,
                 fontSize: 12,
               ),
             ),
@@ -128,8 +131,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           'Account created successfully! Please log in.',
         );
         AppRoutes.pop(context);
-      } else if (next.status == AuthStatus.error &&
-          next.errorMessage != null) {
+      } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         SnackbarUtils.showError(context, next.errorMessage!);
         ref.read(authViewModelProvider.notifier).resetError();
       }
@@ -137,7 +139,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xff0F0F0F),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -151,9 +153,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 IconButton(
                   onPressed: () => AppRoutes.pop(context),
                   padding: EdgeInsets.zero,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_ios,
-                    color: Colors.white,
+                    color: context.textPrimary,
                     size: 20,
                   ),
                 ),
@@ -161,10 +163,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 const SizedBox(height: 16),
 
                 // ─── Title ──────────────────────────────────────
-                const Text(
+                 Text(
                   "Create Account",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: context.textPrimary,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -173,7 +175,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 Text(
                   "Join Kajani and start exploring",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: context.textSecondary,
                     fontSize: 13,
                   ),
                 ),
@@ -426,7 +428,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                           Text(
                             "Already have an account? ",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
+                              color: context.textSecondary,
                               fontSize: 14,
                             ),
                           ),

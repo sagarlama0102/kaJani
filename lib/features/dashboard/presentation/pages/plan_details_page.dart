@@ -99,8 +99,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     await ref
         .read(planViewModelProvider.notifier)
-        .toggleSavePlan(widget.planId,
-        currentUserId: currentUserId,);
+        .toggleSavePlan(widget.planId, currentUserId: currentUserId);
     final isSaved = ref.read(planViewModelProvider).isSaved;
     if (isSaved == true) {
       SnackbarUtils.showSuccess(context, 'Plan saved!');
@@ -132,7 +131,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     if (plan == null) {
       return const Scaffold(
-        backgroundColor: Color(0xff0F0F0F),
         body: Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
@@ -143,7 +141,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     final isMember = plan.members?.contains(currentUserId) ?? false;
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
       body: Column(
         children: [
           // ─── Scrollable Content ─────────────────────────────────
@@ -152,7 +149,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   Stack(
                     children: [
                       Container(
@@ -423,7 +419,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                             planId: widget.planId,
                             planTitle: plan.title,
                             planCoverImage: plan.coverImage,
-                            memberIds: plan.members ?? [],  
+                            memberIds: plan.members ?? [],
                           ),
                         );
                       },

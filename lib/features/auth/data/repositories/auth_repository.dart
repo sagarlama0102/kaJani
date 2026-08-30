@@ -46,12 +46,8 @@ class AuthRepositoryImpl implements IAuthRepository {
     if (await _networkInfo.isConnected) {
       try {
         final (authModel, userModel) = await _remoteDatasource.register(
-          firstName: userEntity.firstName,
-          lastName: userEntity.lastName,
           email: authEntity.email,
-          username: userEntity.username,
           password: authEntity.password!,
-          phoneNumber: userEntity.phoneNumber,
         );
 
         // Cache auth data locally in Hive
@@ -193,18 +189,54 @@ class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-// ─── Upload Photo ──────────────────────────────────────────────
-@override
-Future<Either<Failure, String>> uploadPhoto(File photo) async {
-  if (await _networkInfo.isConnected) {
-    try {
-      final photoUrl = await _remoteDatasource.uploadPhoto(photo); // 👈 actually call it
-      return Right(photoUrl);
-    } catch (e) {
-      return Left(ApiFailure(message: e.toString()));
+  // ─── Upload Photo ──────────────────────────────────────────────
+  @override
+  Future<Either<Failure, String>> uploadPhoto(File photo) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final photoUrl = await _remoteDatasource.uploadPhoto(
+          photo,
+        ); // 👈 actually call it
+        return Right(photoUrl);
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
     }
-  } else {
-    return const Left(NetworkFailure(message: 'No internet connection'));
   }
-}
+
+  @override
+  Future<Either<Failure, AuthEntity>> completeProfile({
+    required String firstName,
+    required String lastName,
+    required String username,
+  }) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final (authModel, userModel) = await _remoteDatasource.completeProfile(
+          firstName: firstName,
+          lastName: lastName,
+          username: username,
+        );
+
+        final hiveModel = AuthHiveModel.fromEntity(authModel.toEntity());
+        await _localDatasource.register(hiveModel);
+
+        return Right(authModel.toEntity());
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message:
+                e.response?.data['message'] ?? 'Failed to complete profile',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
 }

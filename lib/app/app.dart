@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Kajani',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.light, // 👈 dark mode by default
+      themeMode: ThemeMode.system, 
       theme: _lightTheme(),
       darkTheme: _darkTheme(),
       home: const SplashPage(),

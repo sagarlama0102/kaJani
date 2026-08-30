@@ -434,7 +434,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -490,7 +490,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
 
               // ─── Cover Photo ─────────────────────────────────────
               GestureDetector(
-                onTap: _pickCoverImage, // 👈 shows bottom sheet
+                onTap: _pickCoverImage, 
                 child: Container(
                   width: double.infinity,
                   height: 140,

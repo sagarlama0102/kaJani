@@ -35,24 +35,13 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   // ─── Traditional Register ───────────────────────────────────────
   @override
   Future<(AuthApiModel, UserApiModel)> register({
-    required String firstName,
-    required String lastName,
     required String email,
-    required String username,
     required String password,
     String? phoneNumber,
   }) async {
     final response = await _apiClient.post(
       ApiEndpoints.register,
-      data: {
-        'firstName': firstName,
-        'lastName': lastName,
-        'email': email,
-        'username': username,
-        'password': password,
-        'confirmPassword': password,
-        if (phoneNumber != null) 'phoneNumber': phoneNumber,
-      },
+      data: {'email': email, 'password': password, 'confirmPassword': password},
     );
 
     if (response.data['success'] == true) {
@@ -69,6 +58,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
+        isOnboarded: false,
         profilePicture: userJson['profilePicture'],
       );
 
@@ -109,6 +99,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
+        isOnboarded: userJson['isOnboarded'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
 
@@ -138,9 +129,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
           await account.authentication;
       final googleIdToken = googleAuth.idToken;
 
-      if (googleIdToken == null)
+      if (googleIdToken == null) {
         throw Exception('Failed to get Google ID token');
-
+      }
       final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
       final userCredential = await FirebaseAuth.instance.signInWithCredential(
         credential,
@@ -148,9 +139,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       final firebaseIdToken = await userCredential.user?.getIdToken(true);
 
-      if (firebaseIdToken == null)
+      if (firebaseIdToken == null) {
         throw Exception('Failed to get Firebase ID token');
-
+      }
       final response = await _apiClient.post(
         ApiEndpoints.googleSignIn,
         data: {'idToken': firebaseIdToken},
@@ -169,6 +160,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
           lastName: userJson['lastName'],
           phoneNumber: userJson['phoneNumber'],
           token: token,
+          isOnboarded: userJson['isOnboarded'] ?? false,
           profilePicture: userJson['profilePicture'],
         );
 
@@ -210,48 +202,93 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     await GoogleSignIn.instance.signOut();
   }
 
- // ─── Upload Photo ────────────────────────────────────────────────
-@override
-Future<String> uploadPhoto(File photo) async {
-  final fileName = photo.path.split('/').last;
-  final formData = FormData.fromMap({
-    'profilePicture': await MultipartFile.fromFile(
-      photo.path,
-      filename: fileName,
-    ),
-  });
+  // ─── Upload Photo ────────────────────────────────────────────────
+  @override
+  Future<String> uploadPhoto(File photo) async {
+    final fileName = photo.path.split('/').last;
+    final formData = FormData.fromMap({
+      'profilePicture': await MultipartFile.fromFile(
+        photo.path,
+        filename: fileName,
+      ),
+    });
 
-  final response = await _apiClient.uploadFile(
-    ApiEndpoints.userUploadPhoto,
-    formData: formData,
-  );
-
-  if (response.data['success'] == true) {
-    final profilePicture = response.data['data']['user']['profilePicture'] as String;
-
-    // 👈 persist the new picture so it survives app restart
-    final currentUserId = _userSessionService.getUserId() ?? '';
-    final currentEmail = _userSessionService.getUserEmail() ?? '';
-    final currentUsername = _userSessionService.getUsername() ?? '';
-    final currentFirstName = _userSessionService.getUserFirstName() ?? '';
-    final currentLastName = _userSessionService.getUserLastName() ?? '';
-    final currentPhone = _userSessionService.getUserPhoneNumber();
-    final currentToken = _userSessionService.getToken() ?? '';
-
-    await _userSessionService.saveUserSession(
-      userId: currentUserId,
-      email: currentEmail,
-      username: currentUsername,
-      firstName: currentFirstName,
-      lastName: currentLastName,
-      phoneNumber: currentPhone,
-      token: currentToken,
-      profilePicture: profilePicture, // 👈 the new one
+    final response = await _apiClient.uploadFile(
+      ApiEndpoints.userUploadPhoto,
+      formData: formData,
     );
 
-    return profilePicture;
+    if (response.data['success'] == true) {
+      final profilePicture =
+          response.data['data']['user']['profilePicture'] as String;
+
+      final currentUserId = _userSessionService.getUserId() ?? '';
+      final currentEmail = _userSessionService.getUserEmail() ?? '';
+      final currentUsername = _userSessionService.getUsername() ?? '';
+      final currentFirstName = _userSessionService.getUserFirstName() ?? '';
+      final currentLastName = _userSessionService.getUserLastName() ?? '';
+      final currentPhone = _userSessionService.getUserPhoneNumber();
+      final currentToken = _userSessionService.getToken() ?? '';
+      final currentIsOnboarded = _userSessionService.isOnboarded();
+
+      await _userSessionService.saveUserSession(
+        userId: currentUserId,
+        email: currentEmail,
+        username: currentUsername,
+        firstName: currentFirstName,
+        lastName: currentLastName,
+        phoneNumber: currentPhone,
+        token: currentToken,
+        isOnboarded: currentIsOnboarded,
+        profilePicture: profilePicture,
+      );
+
+      return profilePicture;
+    }
+
+    throw Exception(response.data['message'] ?? 'Upload failed');
   }
 
-  throw Exception(response.data['message'] ?? 'Upload failed');
-}
+  @override
+  Future<(AuthApiModel, UserApiModel)> completeProfile({
+    required String firstName,
+    required String lastName,
+    required String username,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.completeProfile,
+      data: {
+        'firstName': firstName,
+        'lastName': lastName,
+        'username': username,
+      },
+    );
+
+    if (response.data['success'] == true) {
+      final token = response.data['token'] as String;
+      final userJson = response.data['data'] as Map<String, dynamic>;
+
+      await _tokenService.saveToken(token);
+      await _userSessionService.saveUserSession(
+        userId: userJson['id'],
+        email: userJson['email'],
+        username: userJson['username'],
+        firstName: userJson['firstName'],
+        lastName: userJson['lastName'],
+        phoneNumber: userJson['phoneNumber'],
+        token: token,
+        isOnboarded: userJson['isOnboarded'] ?? true, //
+        profilePicture: userJson['profilePicture'],
+      );
+      final authModel = AuthApiModel(
+        authId: userJson['id'],
+        email: userJson['email'],
+        provider: userJson['provider'],
+      );
+      final userModel = UserApiModel.fromJson(userJson);
+
+      return (authModel, userModel);
+    }
+    throw Exception(response.data['message'] ?? 'Failed to complete profile');
+  }
 }

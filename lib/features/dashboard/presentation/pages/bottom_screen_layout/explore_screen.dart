@@ -84,7 +84,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final plans = planState.plans;
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      
       body: SafeArea(
         child: Column(
           children: [

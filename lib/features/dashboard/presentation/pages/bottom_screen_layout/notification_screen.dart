@@ -49,7 +49,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff1A1A2E),
+        
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Clear all notifications?',
@@ -67,8 +67,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: implement clear all in backend
-              // ref.read(notificationViewModelProvider.notifier).clearAll();
+             
             },
             child: Text('Clear All', style: TextStyle(color: AppColors.error)),
           ),

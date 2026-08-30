@@ -33,10 +33,12 @@ extension ThemeColorsExtension on BuildContext {
       isDarkMode ? AppColors.darkBackground : AppColors.background;
 
   Color get surfaceColor =>
-      isDarkMode ? AppColors.darkSurface : AppColors.surface;
+    isDarkMode ? AppColors.darkSurface : AppColors.surface;
 
-  Color get surfaceVariantColor =>
-      isDarkMode ? AppColors.darkSurfaceVariant : AppColors.surfaceVariant;
+Color get surfaceVariantColor =>
+    isDarkMode
+        ? AppColors.darkSurfaceVariant
+        : AppColors.surfaceVariant;
 
   // ─── Input Colors ─────────────────────────────────────────────
 

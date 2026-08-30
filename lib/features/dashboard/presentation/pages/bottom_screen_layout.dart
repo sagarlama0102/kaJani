@@ -26,10 +26,9 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Keep background color consistent with the theme
+     
       backgroundColor: context.backgroundColor,
       
-      // Use IndexedStack to preserve state when switching tabs
       body: IndexedStack(
         index: _selectedIndex,
         children: lstBottomScreen,

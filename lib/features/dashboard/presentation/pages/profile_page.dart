@@ -52,9 +52,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff1A1A2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Permission Required', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Permission Required',
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           'Please enable access in settings to update your profile photo.',
           style: TextStyle(color: Colors.white70),
@@ -81,7 +83,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         imageQuality: 80,
       );
       if (photo != null) {
-        await ref.read(authViewModelProvider.notifier).uploadPhoto(File(photo.path));
+        await ref
+            .read(authViewModelProvider.notifier)
+            .uploadPhoto(File(photo.path));
       }
     }
   }
@@ -93,7 +97,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       imageQuality: 80,
     );
     if (image != null) {
-      await ref.read(authViewModelProvider.notifier).uploadPhoto(File(image.path));
+      await ref
+          .read(authViewModelProvider.notifier)
+          .uploadPhoto(File(image.path));
     }
   }
 
@@ -101,7 +107,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void _pickProfilePhoto() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xff1A1A2E),
+
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -120,8 +126,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
             const SizedBox(height: 8),
             ListTile(
-              leading: const Icon(Icons.camera_alt_outlined, color: Colors.white),
-              title: const Text('Take a Photo', style: TextStyle(color: Colors.white)),
+              leading: const Icon(
+                Icons.camera_alt_outlined,
+                color: Colors.white,
+              ),
+              title: const Text(
+                'Take a Photo',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _pickFromCamera();
@@ -129,7 +141,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             ),
             ListTile(
               leading: const Icon(Icons.image_outlined, color: Colors.white),
-              title: const Text('Choose from Gallery', style: TextStyle(color: Colors.white)),
+              title: const Text(
+                'Choose from Gallery',
+                style: TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _pickFromGallery();
@@ -182,10 +197,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final planState = ref.watch(planViewModelProvider);
-    final authState = ref.watch(authViewModelProvider); // 👈 added
+    final authState = ref.watch(authViewModelProvider);
     final userSession = ref.read(userSessionServiceProvider);
 
-    // 👈 added listener for upload feedback
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.loaded && next.uploadedPhotoUrl != null) {
         SnackbarUtils.showSuccess(context, 'Profile photo updated!');
@@ -199,10 +213,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final lastName = userSession.getUserLastName() ?? '';
     final fullName = '$firstName $lastName'.trim();
     final email = userSession.getUserEmail() ?? '';
-    final profilePicture = authState.uploadedPhotoUrl ?? userSession.getUserProfilePicture(); // 👈 changed
+    final profilePicture =
+        authState.uploadedPhotoUrl ?? userSession.getUserProfilePicture();
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20),

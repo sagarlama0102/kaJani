@@ -11,6 +11,7 @@ class ApiEndpoints {
   static const String register = 'auth/register';
   static const String login = 'auth/login';
   static const String googleSignIn = 'auth/google';
+  static const String completeProfile = 'auth/complete-profile';
   static const String whoAmI = 'auth/whoami';
   static const String userUploadPhoto = 'auth/update-profile';
 
