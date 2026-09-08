@@ -4,7 +4,6 @@ import 'package:kajani/core/constants/hive_table_constants.dart';
 import 'package:kajani/features/auth/data/models/auth_hive_model.dart';
 import 'package:path_provider/path_provider.dart';
 
-
 final hiveServiceProvider = Provider<HiveService>((ref) {
   return HiveService();
 });
@@ -25,13 +24,11 @@ class HiveService {
     if (!Hive.isAdapterRegistered(HiveTableConstants.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
-
   }
 
   // open Boxes
   Future<void> openBoxes() async {
     await Hive.openBox<AuthHiveModel>(HiveTableConstants.authTable);
-
   }
 
   //close Boxes
@@ -49,18 +46,18 @@ class HiveService {
   }
 
   //login User
-  Future<AuthHiveModel?> loginUser(String email, String password) async {
-    final users = _authBox.values.where(
-      (user) => user.email == email && user.password == password,
-    );
-    if (users.isNotEmpty) {
-      return users.first;
+  Future<AuthHiveModel?> loginUser(String email) async {
+    try {
+      return _authBox.values.firstWhere((user) => user.email == email);
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
   // logout
-  Future<void> logoutUser() async {}
+  Future<void> logoutUser() async {
+    await _authBox.clear();
+  }
 
   //get current user
   AuthHiveModel? getCurrentUser(String authId) {
@@ -100,6 +97,4 @@ class HiveService {
   Future<void> deleteUser(String authId) async {
     await _authBox.delete(authId);
   }
-
-  
 }

@@ -16,6 +16,15 @@ extension ThemeColorsExtension on BuildContext {
 
   LinearGradient get primaryGradient => AppColors.primaryGradient;
 
+  // ─── Skeleton / Shimmer ───────────────────────────────────────
+
+  Color get skeletonBaseColor =>
+      isDarkMode ? AppColors.darkSkeletonBase : AppColors.skeletonBase;
+
+  Color get skeletonHighlightColor => isDarkMode
+      ? AppColors.darkSkeletonHighlight
+      : AppColors.skeletonHighlight;
+
   // ─── Text Colors ──────────────────────────────────────────────
 
   Color get textPrimary =>
@@ -33,12 +42,10 @@ extension ThemeColorsExtension on BuildContext {
       isDarkMode ? AppColors.darkBackground : AppColors.background;
 
   Color get surfaceColor =>
-    isDarkMode ? AppColors.darkSurface : AppColors.surface;
+      isDarkMode ? AppColors.darkSurface : AppColors.surface;
 
-Color get surfaceVariantColor =>
-    isDarkMode
-        ? AppColors.darkSurfaceVariant
-        : AppColors.surfaceVariant;
+  Color get surfaceVariantColor =>
+      isDarkMode ? AppColors.darkSurfaceVariant : AppColors.surfaceVariant;
 
   // ─── Input Colors ─────────────────────────────────────────────
 

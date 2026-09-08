@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
 import 'package:kajani/features/auth/presentation/pages/signup_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
@@ -93,7 +96,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
-        AppRoutes.pushReplacement(context, const BottomScreenLayout());
+        final isOnboarded = ref.read(userSessionServiceProvider).isOnboarded();
+        if(!isOnboarded){
+          AppRoutes.pushReplacement(context, const NameCapturePage());
+        }else{
+          AppRoutes.pushReplacement(context, const BottomScreenLayout());
+        }
+        
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         SnackbarUtils.showError(context, next.errorMessage!);
         ref.read(authViewModelProvider.notifier).resetError();
@@ -174,7 +183,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           decoration: _inputDecoration(
                             label: '',
                             hint: 'name@example.com',
-                            icon: Icons.email_outlined,
+                            icon: Iconsax.sms,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -230,12 +239,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           decoration: _inputDecoration(
                             label: '',
                             hint: '••••••••',
-                            icon: Icons.lock_outline,
+                            icon: Iconsax.lock,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                                    ? Iconsax.eye_copy
+                                    : Iconsax.eye_slash,
                                 color: context.textSecondary,
                                 size: 20,
                               ),
@@ -248,8 +257,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your password';
                             }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
+                            if (value.length < 8) {
+                              return 'Password must be at least 8 characters';
                             }
                             return null;
                           },
@@ -296,9 +305,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       ),
                                       SizedBox(width: 8),
                                       Icon(
-                                        Icons.arrow_forward,
+                                        Iconsax.arrow_right,
                                         color: Colors.white,
-                                        size: 18,
+                                        size: 20,
                                       ),
                                     ],
                                   ),

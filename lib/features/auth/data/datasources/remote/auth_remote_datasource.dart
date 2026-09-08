@@ -10,6 +10,7 @@ import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/auth/data/datasources/auth_datasource.dart';
 import 'package:kajani/features/auth/data/models/auth_api_model.dart';
 import 'package:kajani/features/user/data/models/user_api_model.dart';
+import 'package:kajani/core/error/exceptions.dart';
 
 final authRemoteDatasourceProvider = Provider<IAuthRemoteDataSource>((ref) {
   return AuthRemoteDatasource(
@@ -176,6 +177,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       throw Exception(response.data['message'] ?? 'Google sign in failed');
     } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw GoogleSignInCancelledException();
+      }
       throw Exception('Google sign in error: ${e.description}');
     } catch (e) {
       rethrow;
@@ -188,6 +192,21 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     final response = await _apiClient.get(ApiEndpoints.whoAmI);
     if (response.data['success'] == true) {
       final userJson = response.data['data']['user'] as Map<String, dynamic>;
+
+      // 👈 refresh the saved session with the latest backend truth
+      final currentToken = _userSessionService.getToken() ?? '';
+      await _userSessionService.saveUserSession(
+        userId: userJson['id'],
+        email: userJson['email'],
+        username: userJson['username'],
+        firstName: userJson['firstName'],
+        lastName: userJson['lastName'],
+        phoneNumber: userJson['phoneNumber'],
+        token: currentToken,
+        isOnboarded: userJson['isOnboarded'] ?? false,
+        profilePicture: userJson['profilePicture'],
+      );
+
       return UserApiModel.fromJson(userJson);
     }
     throw Exception(response.data['message'] ?? 'Failed to get user');

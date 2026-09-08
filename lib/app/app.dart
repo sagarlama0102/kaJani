@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Kajani',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.system, 
+      themeMode: ThemeMode.system,
       theme: _lightTheme(),
       darkTheme: _darkTheme(),
       home: const SplashPage(),
@@ -20,7 +20,7 @@ class App extends StatelessWidget {
   ThemeData _lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: 'OpenSans',
+      fontFamily: 'ComicRelief',
       scaffoldBackgroundColor: AppColors.background,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.light(
@@ -45,46 +45,35 @@ class App extends StatelessWidget {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-  filled: true,
-  fillColor: AppColors.inputFill,
+        filled: true,
+        fillColor: AppColors.inputFill,
 
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(
-      color: AppColors.border,
-    ),
-  ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
 
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(
-      color: AppColors.border,
-    ),
-  ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
 
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(
-      color: AppColors.primary,
-      width: 1.5,
-    ),
-  ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
 
-  hintStyle: const TextStyle(
-    color: AppColors.textTertiary,
-  ),
+        hintStyle: const TextStyle(color: AppColors.textTertiary),
 
-  labelStyle: const TextStyle(
-    color: AppColors.textSecondary,
-  ),
-),
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+      ),
     );
   }
 
   ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
-      fontFamily: 'OpenSans',
+      fontFamily: 'ComicRelief',
       scaffoldBackgroundColor: AppColors.darkBackground,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.dark(
@@ -106,8 +95,8 @@ class App extends StatelessWidget {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,   // purple
-          foregroundColor: Colors.white,         // white text
+          backgroundColor: AppColors.primary, // purple
+          foregroundColor: Colors.white, // white text
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -124,9 +113,7 @@ class App extends StatelessWidget {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryLight,
-        ),
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryLight),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -154,12 +141,8 @@ class App extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.darkDivider,
-      ),
-      iconTheme: const IconThemeData(
-        color: AppColors.darkTextSecondary,
-      ),
+      dividerTheme: const DividerThemeData(color: AppColors.darkDivider),
+      iconTheme: const IconThemeData(color: AppColors.darkTextSecondary),
     );
   }
 }

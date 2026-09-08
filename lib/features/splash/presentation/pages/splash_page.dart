@@ -4,6 +4,7 @@ import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
+import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
@@ -86,7 +87,13 @@ Future<void> _navigateToNext() async {
 
     final authState = ref.read(authViewModelProvider);
     if (authState.status == AuthStatus.authenticated) {
-      AppRoutes.pushReplacement(context, const BottomScreenLayout());
+      final isOnboarded = userSessionService.isOnboarded();
+      if(!isOnboarded){
+        AppRoutes.pushReplacement(context, const NameCapturePage());
+      }else{
+        AppRoutes.pushReplacement(context, const BottomScreenLayout());
+      }
+      
     } else {
       // token expired or invalid — clear session and go to login
       await userSessionService.clearUserSession();

@@ -45,6 +45,14 @@ dependencies:
   path_provider: ^2.1.2
   path: ^1.9.0
 
+  #icons
+  iconsax_flutter: ^1.0.1
+
+  #skeleton loading
+  shimmer: ^3.0.0
+
+ 
+
   
   # Networking
   dio: ^5.4.1
@@ -136,12 +144,13 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
 fonts:
-    - family: OpenSans Bold
+    - family: ComicRelief
       fonts:
-        - asset: assets/fonts/opensans_bold.ttf
-    - family: OpenSans Regular
-      fonts:
-        - asset: assets/fonts/opensans_regular.ttf
+        - asset: assets/fonts/comicrelief_regular.ttf
+          weight: 400
+        - asset: assets/fonts/comicrelief_bold.ttf
+          weight: 700
+    
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

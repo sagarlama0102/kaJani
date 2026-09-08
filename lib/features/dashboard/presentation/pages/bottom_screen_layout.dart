@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/chat_screen.dart';
-import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/plan_chat_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/explore_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/home_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/notification_screen.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class BottomScreenLayout extends StatefulWidget {
   const BottomScreenLayout({super.key});
@@ -57,8 +57,8 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
               // MODERN STYLING
               backgroundColor: Colors.transparent, // Controlled by the Container
               elevation: 0,
-              selectedItemColor: const Color(0xffA78BFA), // Your signature mint green
-              unselectedItemColor: context.textSecondary.withOpacity(0.5),
+              selectedItemColor: context.primary, // Your signature mint green
+              unselectedItemColor: context.textSecondary50,
               selectedFontSize: 12,
               unselectedFontSize: 12,
               selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -68,33 +68,33 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.home_outlined),
+                    child: Icon(Iconsax.home_2),
                   ),
-                  activeIcon: Icon(Icons.home_rounded),
+                  activeIcon: Icon(Iconsax.home_2_copy),
                   label: "Home",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.search),
+                    child: Icon(Iconsax.search_normal),
                   ),
-                  activeIcon: Icon(Icons.search_rounded),
+                  activeIcon: Icon(Iconsax.search_normal_copy),
                   label: "Explore",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.notifications),
+                    child: Icon(Iconsax.notification_1),
                   ),
-                  activeIcon: Icon(Icons.notifications_active_rounded),
+                  activeIcon: Icon(Iconsax.notification_1_copy),
                   label: "Notification",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Icons.chat_bubble_rounded),
+                    child: Icon(Iconsax.message_2),
                   ),
-                  activeIcon: Icon(Icons.chat_rounded),
+                  activeIcon: Icon(Iconsax.message_2_copy),
                   label: "Messages",
                 ),
               ],

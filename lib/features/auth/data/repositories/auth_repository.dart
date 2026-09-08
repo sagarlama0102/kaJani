@@ -12,6 +12,7 @@ import 'package:kajani/features/auth/data/models/auth_hive_model.dart';
 import 'package:kajani/features/auth/domain/entities/auth_entity.dart';
 import 'package:kajani/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kajani/features/user/domain/entities/user_entity.dart';
+import 'package:kajani/core/error/exceptions.dart';
 
 // ─── Provider ─────────────────────────────────────────────────────
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
@@ -127,6 +128,8 @@ class AuthRepositoryImpl implements IAuthRepository {
         await _localDatasource.register(hiveModel);
 
         return Right(authModel.toEntity());
+      } on GoogleSignInCancelledException {
+        return const Left(CancelledFailure());
       } on DioException catch (e) {
         return Left(
           ApiFailure(

@@ -8,14 +8,16 @@ import 'package:kajani/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/register_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/upload_photo_usecase.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
+import 'package:kajani/features/auth/domain/usecases/complete_profile_usecase.dart'; //add
 
-final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(() => AuthViewModel(),
-  
+final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
+  () => AuthViewModel(),
 );
 
 class AuthViewModel extends Notifier<AuthState> {
   late final RegisterUsecase _registerUsecase;
   late final LoginUsecase _loginUsecase;
+  late final CompleteProfileUsecase _completeProfileUsecase;
   late final LogoutUsecase _logoutUsecase;
   late final GetCurrentUserUsecase _getCurrentUserUsecase;
   late final GoogleSignInUsecase _googleSignInUsecase;
@@ -25,33 +27,24 @@ class AuthViewModel extends Notifier<AuthState> {
   AuthState build() {
     _registerUsecase = ref.read(registerUsecaseProvider);
     _loginUsecase = ref.read(loginUsecaseProvider);
+    _completeProfileUsecase = ref.read(completeProfileUsecaseProvider);
     _logoutUsecase = ref.read(logoutUsecaseProvider);
     _getCurrentUserUsecase = ref.read(getCurrentUserUsecaseProvider);
     _googleSignInUsecase = ref.read(googleSignInUsecaseProvider);
     _uploadPhotoUsecase = ref.read(uploadPhotoUsecaseProvider);
     return AuthState();
-
   }
+
   // ─── Register ──────────────────────────────────────────────────
   Future<void> register({
-    required String firstName,
-    required String lastName,
     required String email,
-    required String username,
     required String password,
     String? phoneNumber,
   }) async {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _registerUsecase(
-      RegisterUsecaseParams(
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        username: username,
-        password: password,
-        phoneNumber: phoneNumber,
-      ),
+      RegisterUsecaseParams(email: email, password: password),
     );
 
     result.fold(
@@ -59,17 +52,40 @@ class AuthViewModel extends Notifier<AuthState> {
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-      (_) => state = state.copyWith(
-        status: AuthStatus.registered,
-      ),
+      (_) => state = state.copyWith(status: AuthStatus.registered),
     );
   }
 
+  // ─── Complete Profile (Name Capture step) ────────────────────────
+Future<void> completeProfile({
+  required String firstName,
+  required String lastName,
+  required String username,
+}) async {
+  state = state.copyWith(status: AuthStatus.loading);
+
+  final result = await _completeProfileUsecase(
+    CompleteProfileParams(
+      firstName: firstName,
+      lastName: lastName,
+      username: username,
+    ),
+  );
+
+  result.fold(
+    (failure) => state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage: failure.message,
+    ),
+    (authEntity) => state = state.copyWith(
+      status: AuthStatus.authenticated, 
+      authEntity: authEntity,
+    ),
+  );
+}
+
   // ─── Login ─────────────────────────────────────────────────────
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = state.copyWith(status: AuthStatus.loading);
 
     final result = await _loginUsecase(
@@ -91,27 +107,23 @@ class AuthViewModel extends Notifier<AuthState> {
   // ─── Google Sign In ────────────────────────────────────────────
   Future<void> signInWithGoogle() async {
     state = state.copyWith(status: AuthStatus.loading);
-  
 
     final result = await _googleSignInUsecase();
 
-
-     result.fold(
-    (failure) {
-
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: failure.message,
-      );
-    },
-    (authEntity) {
- 
-      state = state.copyWith(
-        status: AuthStatus.authenticated,
-        authEntity: authEntity,
-      );
-    },
-  );
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (authEntity) {
+        state = state.copyWith(
+          status: AuthStatus.authenticated,
+          authEntity: authEntity,
+        );
+      },
+    );
   }
 
   // ─── Get Current User ──────────────────────────────────────────
@@ -154,9 +166,7 @@ class AuthViewModel extends Notifier<AuthState> {
   Future<void> uploadPhoto(File photo) async {
     state = state.copyWith(status: AuthStatus.loading);
 
-    final result = await _uploadPhotoUsecase(
-      UploadPhotoParams(photo: photo),
-    );
+    final result = await _uploadPhotoUsecase(UploadPhotoParams(photo: photo));
 
     result.fold(
       (failure) => state = state.copyWith(
@@ -172,9 +182,6 @@ class AuthViewModel extends Notifier<AuthState> {
 
   // ─── Reset Error ───────────────────────────────────────────────
   void resetError() {
-    state = state.copyWith(
-      status: AuthStatus.initial,
-      errorMessage: null,
-    );
+    state = state.copyWith(status: AuthStatus.initial, errorMessage: null);
   }
 }

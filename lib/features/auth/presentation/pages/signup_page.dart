@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -16,11 +20,7 @@ class SignupPage extends ConsumerStatefulWidget {
 
 class _SignupPageState extends ConsumerState<SignupPage> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -28,11 +28,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
     _emailController.dispose();
-    _usernameController.dispose();
-    _phoneNumberController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -43,16 +39,14 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       await ref
           .read(authViewModelProvider.notifier)
           .register(
-            firstName: _firstNameController.text.trim(),
-            lastName: _lastNameController.text.trim(),
             email: _emailController.text.trim(),
-            username: _usernameController.text.trim(),
             password: _passwordController.text.trim(),
-            phoneNumber: _phoneNumberController.text.trim().isEmpty
-                ? null
-                : _phoneNumberController.text.trim(),
           );
     }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    await ref.read(authViewModelProvider.notifier).signInWithGoogle();
   }
 
   // ─── Reusable input decoration ──────────────────────────────────
@@ -91,31 +85,16 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     );
   }
 
-  // ─── Field label ────────────────────────────────────────────────
-  Widget _fieldLabel(String label, {bool isOptional = false}) {
+  Widget _fieldLabel(String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: context.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (isOptional) ...[
-            const SizedBox(width: 6),
-            Text(
-              "(optional)",
-              style: TextStyle(
-                color: context.textTertiary,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          color: context.textSecondary,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -131,6 +110,13 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           'Account created successfully! Please log in.',
         );
         AppRoutes.pop(context);
+      } else if (next.status == AuthStatus.authenticated) {
+        final isOnboarded = ref.read(userSessionServiceProvider).isOnboarded();
+        if (!isOnboarded) {
+          AppRoutes.pushReplacement(context, const NameCapturePage());
+        } else {
+          AppRoutes.pushReplacement(context, const BottomScreenLayout());
+        }
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         SnackbarUtils.showError(context, next.errorMessage!);
         ref.read(authViewModelProvider.notifier).resetError();
@@ -139,7 +125,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -149,7 +134,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               children: [
                 const SizedBox(height: 16),
 
-                // ─── Back Button ────────────────────────────────
                 IconButton(
                   onPressed: () => AppRoutes.pop(context),
                   padding: EdgeInsets.zero,
@@ -162,8 +146,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
                 const SizedBox(height: 16),
 
-                // ─── Title ──────────────────────────────────────
-                 Text(
+                Text(
                   "Create Account",
                   style: TextStyle(
                     color: context.textPrimary,
@@ -174,10 +157,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 const SizedBox(height: 6),
                 Text(
                   "Join Kajani and start exploring",
-                  style: TextStyle(
-                    color: context.textSecondary,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: context.textSecondary, fontSize: 13),
                 ),
 
                 const SizedBox(height: 32),
@@ -187,69 +167,15 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ─── First + Last Name ───────────────────
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _fieldLabel("First Name"),
-                                TextFormField(
-                                  controller: _firstNameController,
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: _inputDecoration(
-                                    hint: 'John',
-                                    icon: Icons.person_outline,
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _fieldLabel("Last Name"),
-                                TextFormField(
-                                  controller: _lastNameController,
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: _inputDecoration(
-                                    hint: 'Doe',
-                                    icon: Icons.person_outline,
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
                       // ─── Email ───────────────────────────────
                       _fieldLabel("Email Address"),
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: context.textSecondary),
                         decoration: _inputDecoration(
                           hint: 'name@example.com',
-                          icon: Icons.email_outlined,
+                          icon: Iconsax.sms,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -264,57 +190,21 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
                       const SizedBox(height: 20),
 
-                      // ─── Username ────────────────────────────
-                      _fieldLabel("Username"),
-                      TextFormField(
-                        controller: _usernameController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: _inputDecoration(
-                          hint: '@username',
-                          icon: Icons.alternate_email,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a username';
-                          }
-                          if (value.length < 3) {
-                            return 'Username must be at least 3 characters';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // ─── Phone Number ────────────────────────
-                      _fieldLabel("Phone Number", isOptional: true),
-                      TextFormField(
-                        controller: _phoneNumberController,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: _inputDecoration(
-                          hint: '+977 98XXXXXXXX',
-                          icon: Icons.phone_outlined,
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-
                       // ─── Password ────────────────────────────
                       _fieldLabel("Password"),
                       TextFormField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: context.textSecondary),
                         decoration: _inputDecoration(
                           hint: '••••••••',
-                          icon: Icons.lock_outline,
+                          icon: Iconsax.lock,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: Colors.white.withOpacity(0.5),
+                                  ? Iconsax.eye_copy
+                                  : Iconsax.eye_slash,
+                              color: context.textSecondary,
                               size: 20,
                             ),
                             onPressed: () => setState(
@@ -340,16 +230,16 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: context.textSecondary),
                         decoration: _inputDecoration(
                           hint: '••••••••',
-                          icon: Icons.lock_outline,
+                          icon: Iconsax.lock,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscureConfirmPassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: Colors.white.withOpacity(0.5),
+                                  ? Iconsax.eye_copy
+                                  : Iconsax.eye_slash,
+                              color: context.textSecondary,
                               size: 20,
                             ),
                             onPressed: () => setState(
@@ -410,9 +300,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                     ),
                                     SizedBox(width: 8),
                                     Icon(
-                                      Icons.arrow_forward,
+                                      Iconsax.arrow_right,
                                       color: Colors.white,
-                                      size: 18,
+                                      size: 20,
                                     ),
                                   ],
                                 ),
@@ -420,6 +310,74 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       ),
 
                       const SizedBox(height: 24),
+
+                      // ─── Divider ─────────────────────────────
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(color: context.textSecondary),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              "OR",
+                              style: TextStyle(
+                                color: context.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(color: context.textSecondary),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ─── Google Button ───────────────────────
+                      SizedBox(
+                        height: 55,
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: authState.status == AuthStatus.loading
+                              ? null
+                              : _handleGoogleSignIn,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: context.isDarkMode
+                                ? AppColors.darkSurface
+                                : Colors.white,
+                            side: BorderSide(
+                              color: context.isDarkMode
+                                  ? AppColors.darkBorder
+                                  : AppColors.border,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/google_logo.png',
+                                height: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Continue with Google",
+                                style: TextStyle(
+                                  color: context.textSecondary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
 
                       // ─── Login Link ──────────────────────────
                       Row(
