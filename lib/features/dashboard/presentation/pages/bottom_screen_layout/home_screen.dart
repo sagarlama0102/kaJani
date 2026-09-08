@@ -13,6 +13,8 @@ import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:intl/intl.dart';
+import 'package:kajani/features/dashboard/presentation/widgets/plan_list_card.dart';
+import 'package:kajani/features/dashboard/presentation/widgets/plans_bottom_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -60,9 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildSectionHeader(
                 'Your Groups',
                 allJoined.length,
-                onSeeAll: () {
-                  // TODO: navigate to full "my groups" list once that screen exists
-                },
+                onSeeAll: () => showPlansBottomSheet(context, title: 'Your Groups', plans: allJoined, emptyImagePath: 'assets/images/teamwork.png', emptyTitle: 'No groups yet', emptyMessage: 'Join an event to connect with people'),
               ),
               const SizedBox(height: 14),
               if (planState.status == PlanStatus.loading ||
@@ -76,9 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildSectionHeader(
                 'Upcoming Groups',
                 upcomingJoined.length,
-                onSeeAll: () {
-                  // TODO: navigate to full upcoming list once that screen exists
-                },
+                onSeeAll: () => showPlansBottomSheet(context, title: 'Upcoming Groups', plans: upcomingJoined, emptyImagePath: 'assets/images/calander.png', emptyTitle: 'Noting coming up', emptyMessage: 'Events you can join will show up here so you never miss out')
               ),
               const SizedBox(height: 14),
               if (planState.status == PlanStatus.loading ||
@@ -87,7 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               else if (upcomingJoined.isEmpty)
                 const EmptyState(imagePath: 'assets/images/calander.png', title: "Nothing coming up", message: "Events you can join will show up here so you never miss out")
               else
-                ...upcomingJoined.take(3).map(_buildUpcomingCard),
+                ...upcomingJoined.take(3).map((plan) => PlanListCard(plan: plan)),
               const SizedBox(height: 20),
             ],
           ),
@@ -271,209 +269,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
 
-  Widget _buildUpcomingCard(PlanEntity plan) {
-    return GestureDetector(
-      onTap: () =>
-          AppRoutes.push(context, PlanDetailPage(planId: plan.planId!)),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: context.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: context.borderColor),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: plan.coverImage != null
-                  ? Image.network(
-                      '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                      width: 64,
-                      height: 64,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _thumbPlaceholder(64),
-                    )
-                  : _thumbPlaceholder(64),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    plan.title,
-                    style: TextStyle(
-                      color: context.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 12,
-                        color: context.textTertiary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${plan.date} • ${plan.time}',
-                        style: TextStyle(
-                          color: context.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 12,
-                        color: context.textTertiary,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          plan.location,
-                          style: TextStyle(
-                            color: context.textSecondary,
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      if (plan.memberDetails != null &&
-                          plan.memberDetails!.isNotEmpty)
-                        SizedBox(
-                          width: plan.memberDetails!.length == 1 ? 18 : 32,
-                          height: 18,
-                          child: Stack(
-                            children: List.generate(
-                              plan.memberDetails!.length > 2
-                                  ? 2
-                                  : plan.memberDetails!.length,
-                              (index) {
-                                final member = plan.memberDetails![index];
-                                return Positioned(
-                                  left: index * 12.0,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: context.surfaceColor,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 8,
-                                      backgroundColor: context.primary,
-                                      backgroundImage:
-                                          member.profilePicture != null
-                                          ? NetworkImage(
-                                              member.profilePicture!.startsWith(
-                                                    'http',
-                                                  )
-                                                  ? member.profilePicture!
-                                                  : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
-                                            )
-                                          : null,
-                                      child: member.profilePicture == null
-                                          ? Text(
-                                              member.firstName.isNotEmpty
-                                                  ? member.firstName[0]
-                                                        .toUpperCase()
-                                                  : '?',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 7,
-                                              ),
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${plan.members?.length ?? 0} going',
-                        style: TextStyle(
-                          color: context.textPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            _buildDateBadge(plan.date),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateBadge(String date) {
-  final parsed = DateTime.tryParse(date);
-  if (parsed == null) {
-    // Malformed date — render an empty badge rather than crashing
-    return const SizedBox(width: 48);
-  }
-
-  return Container(
-    width: 48,
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    decoration: BoxDecoration(
-      color: context.primary.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Column(
-      children: [
-        Text(
-          DateFormat('MMM').format(parsed).toUpperCase(), //
-          style: TextStyle(color: context.primary, fontSize: 10, fontWeight: FontWeight.w600),
-        ),
-        Text(
-          DateFormat('d').format(parsed), //
-          style: TextStyle(color: context.primary, fontSize: 15, fontWeight: FontWeight.bold),
-        ),
-      ],
-    ),
-  );
-}
-
-  Widget _thumbPlaceholder(double size) {
-    return Container(
-      width: size,
-      height: size,
-      color: context.primary.withOpacity(0.12),
-      child: Icon(
-        Icons.image_outlined,
-        color: context.primary,
-        size: size * 0.4,
-      ),
-    );
-  }
-
+ 
   Widget _thumbFill() {
     return Container(
       color: context.primary.withOpacity(0.12),
