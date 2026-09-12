@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
@@ -28,34 +31,24 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   ];
 
   final List<Map<String, dynamic>> _categoryFilters = [
-    {'value': null, 'label': 'All Events', 'icon': Icons.auto_awesome_outlined},
-    {'value': 'social', 'label': 'Social', 'icon': Icons.groups_outlined},
-    {'value': 'outdoor', 'label': 'Outdoor', 'icon': Icons.terrain_outlined},
-    {
-      'value': 'sports',
-      'label': 'Sports',
-      'icon': Icons.sports_basketball_outlined,
-    },
-    {'value': 'food', 'label': 'Food', 'icon': Icons.restaurant_outlined},
+    {'value': null, 'label': 'All Events', 'icon': Iconsax.star_1},
+    {'value': 'social', 'label': 'Social', 'icon': Iconsax.people_copy},
+    {'value': 'outdoor', 'label': 'Outdoor', 'icon': Iconsax.tree_copy},
+    {'value': 'sports', 'label': 'Sports', 'icon': Iconsax.game_copy},
+    {'value': 'food', 'label': 'Food', 'icon': Iconsax.coffee_copy},
     {
       'value': 'educational',
       'label': 'Educational',
-      'icon': Icons.school_outlined,
+      'icon': Iconsax.teacher_copy,
     },
-    {'value': 'creative', 'label': 'Creative', 'icon': Icons.palette_outlined},
-    {
-      'value': 'travel',
-      'label': 'Travel',
-      'icon': Icons.flight_takeoff_outlined,
-    },
+    {'value': 'creative', 'label': 'Creative', 'icon': Iconsax.brush_1},
+    {'value': 'travel', 'label': 'Travel', 'icon': Iconsax.airplane_copy},
   ];
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchPlans();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchPlans());
   }
 
   @override
@@ -80,11 +73,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   Widget build(BuildContext context) {
     final planState = ref.watch(planViewModelProvider);
     final currentUserId = ref.read(userSessionServiceProvider).getUserId();
-
     final plans = planState.plans;
 
     return Scaffold(
-      
+      backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -93,23 +85,20 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xff1A1A2E),
+                  color: context.surfaceColor,
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.textPrimary),
                   onSubmitted: (_) => _fetchPlans(),
                   decoration: InputDecoration(
                     hintText: 'Search events or groups...',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                    hintStyle: TextStyle(color: context.textTertiary),
                     prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.white.withOpacity(0.4),
-                    ),
-                    suffixIcon: Icon(
-                      Icons.mic_none_outlined,
-                      color: Colors.white.withOpacity(0.4),
+                      Iconsax.search_normal_copy,
+                      color: context.textSecondary,
                     ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -119,6 +108,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             ),
 
             const SizedBox(height: 16),
+
             // ─── Status Filter Tabs ──────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -139,9 +129,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary
-                              : const Color(0xff1A1A2E),
+                              ? context.primary
+                              : context.surfaceColor,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? context.primary
+                                : context.borderColor,
+                          ),
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -149,7 +144,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white
-                                : Colors.white.withOpacity(0.6),
+                                : context.textSecondary, // 👈 fixed
                             fontSize: 13,
                             fontWeight: isSelected
                                 ? FontWeight.w600
@@ -189,15 +184,20 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primary
-                                  : const Color(0xff1A1A2E),
+                                  ? context.primary
+                                  : context.surfaceColor,
                               shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? context.primary
+                                    : context.borderColor,
+                              ),
                             ),
                             child: Icon(
                               cat['icon'] as IconData,
                               color: isSelected
                                   ? Colors.white
-                                  : AppColors.primary,
+                                  : context.primary,
                               size: 22,
                             ),
                           ),
@@ -208,7 +208,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
+                              color: context.textSecondary,
                               fontSize: 10,
                             ),
                           ),
@@ -224,31 +224,28 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
             // ─── Plan Cards List ──────────────────────────────────────
             Expanded(
-              child: planState.status == PlanStatus.loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    )
+              child:
+                  (planState.status == PlanStatus.loading ||
+                      planState.status == PlanStatus.initial)
+                  ? _buildPlansSkeleton()
                   : plans.isEmpty
                   ? Center(
                       child: Text(
                         'No events found',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.4),
+                          color: context.textSecondary,
                           fontSize: 14,
                         ),
                       ),
                     )
                   : RefreshIndicator(
-                      color: AppColors.primary,
+                      color: context.primary,
                       onRefresh: () async => _fetchPlans(),
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: plans.length,
-                        itemBuilder: (context, index) {
-                          return _buildPlanCard(plans[index], currentUserId);
-                        },
+                        itemBuilder: (context, index) =>
+                            _buildPlanCard(plans[index], currentUserId),
                       ),
                     ),
             ),
@@ -259,39 +256,33 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 
   Widget _buildPlanCard(PlanEntity plan, String? currentUserId) {
-    final currentUserId = ref.read(userSessionServiceProvider).getUserId();
     final isSaved = plan.savedBy?.contains(currentUserId) ?? false;
 
     return GestureDetector(
-      onTap: () {
-        AppRoutes.push(context, PlanDetailPage(planId: plan.planId!));
-      },
+      onTap: () =>
+          AppRoutes.push(context, PlanDetailPage(planId: plan.planId!)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 24),
         decoration: BoxDecoration(
-          color: const Color(0xff0F0F0F), // Dark mode matching screen capture
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: context.borderColor),
         ),
+        clipBehavior: Clip.antiAlias, // 👈 so image corners match card
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Cover Image with overlay icons ───────────────────
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ), // Matches image roundings completely
-                  child: plan.coverImage != null
-                      ? Image.network(
-                          '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                          width: double.infinity,
-                          height: 190,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                        )
-                      : _imagePlaceholder(),
-                ),
+                plan.coverImage != null
+                    ? Image.network(
+                        '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                        width: double.infinity,
+                        height: 190,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                      )
+                    : _imagePlaceholder(),
                 Positioned(
                   top: 12,
                   right: 12,
@@ -307,12 +298,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(
-                          255,
-                          69,
-                          69,
-                          69,
-                        ).withOpacity(0.4),
+                        color: Colors.black.withValues(
+                          alpha: 0.4,
+                        ), // 👈 fixed contrast
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -325,44 +313,69 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 ),
               ],
             ),
-
-            // ─── Content ────────────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Title
                   Text(
                     plan.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.2,
+                    style: TextStyle(
+                      color: context.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                      letterSpacing: -0.3,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-
-                  // 2. Date & Time (Orange/Amber accent styling)
-                  Text(
-                    '${plan.date} • ${plan.time}',
-                    style: const TextStyle(
-                      color: Colors
-                          .orangeAccent, // Matches the screenshot text color
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Iconsax.calendar_1,
+                        size: 14,
+                        color: context.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${plan.date} • ${plan.time}',
+                        style: TextStyle(
+                          color: context.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-
                   const SizedBox(height: 6),
-
-                  // 4. Rating Row
+                  Row(
+                    children: [
+                      Icon(
+                        Iconsax.location,
+                        size: 14,
+                        color: context.textTertiary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          plan.location,
+                          style: TextStyle(
+                            color: context.textSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
 
-                  // 5. Overlapping Going/Members Stack Section
+                  Divider(color: context.borderColor, height: 1),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       if (plan.memberDetails != null &&
@@ -383,13 +396,13 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.black,
+                                        color: context.surfaceColor,
                                         width: 1.5,
                                       ),
                                     ),
                                     child: CircleAvatar(
                                       radius: 9,
-                                      backgroundColor: AppColors.primary,
+                                      backgroundColor: context.primary,
                                       backgroundImage:
                                           member.profilePicture != null
                                           ? NetworkImage(
@@ -420,20 +433,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
                       ],
                       Text(
                         '${plan.members?.length ?? 0} going',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${plan.members?.length ?? 53} going',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: context.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -449,16 +454,57 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     );
   }
 
+  // ─── Skeleton: plan cards list ──────────────────────────────────
+  Widget _buildPlansSkeleton() {
+    return SkeletonShimmer(
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: 3,
+        physics: const NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) => Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: context.borderColor),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SkeletonBox(height: 190, radius: 0), // cover image block
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    SkeletonBox(height: 16, radius: 4), // title line
+                    SizedBox(height: 10),
+                    SkeletonBox(width: 140, height: 12, radius: 4), // date
+                    SizedBox(height: 8),
+                    SkeletonBox(width: 100, height: 12, radius: 4), // location
+                    SizedBox(height: 12),
+                    SkeletonBox(
+                      width: 70,
+                      height: 12,
+                      radius: 4,
+                    ), // going count
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _imagePlaceholder() {
     return Container(
       width: double.infinity,
-      height: 180,
-      color: AppColors.primary.withOpacity(0.2),
-      child: const Icon(
-        Icons.image_outlined,
-        color: AppColors.primary,
-        size: 40,
-      ),
+      height: 190,
+      color: context.primary.withValues(alpha: 0.12),
+      child: Icon(Iconsax.image, color: context.primary, size: 40),
     );
   }
 }

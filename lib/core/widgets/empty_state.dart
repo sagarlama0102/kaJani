@@ -23,6 +23,8 @@ class EmptyState extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center, // add this explicitly
+    mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
             imagePath,

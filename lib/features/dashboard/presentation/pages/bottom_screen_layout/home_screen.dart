@@ -12,7 +12,7 @@ import 'package:kajani/features/dashboard/presentation/pages/profile_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
-import 'package:intl/intl.dart';
+
 import 'package:kajani/features/dashboard/presentation/widgets/plan_list_card.dart';
 import 'package:kajani/features/dashboard/presentation/widgets/plans_bottom_sheet.dart';
 
@@ -69,7 +69,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   planState.status == PlanStatus.initial)
                 _buildGroupsSkeleton()
               else if (allJoined.isEmpty)
-                const EmptyState(imagePath: 'assets/images/teamwork.png', title: "No groups yet", message: "Join an event to connect with people")
+                const SizedBox(
+                  width: double.infinity,
+                  child: EmptyState(imagePath: 'assets/images/teamwork.png', title: "No groups yet", message: "Join an event to connect with people"))
               else
                 _buildGroupsGrid(allJoined),
               const SizedBox(height: 28),

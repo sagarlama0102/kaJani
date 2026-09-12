@@ -120,33 +120,39 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<(AuthApiModel, UserApiModel)> signInWithGoogle() async {
     try {
+    
       await GoogleSignIn.instance.signOut();
       await FirebaseAuth.instance.signOut();
-
+   
       final GoogleSignInAccount account = await GoogleSignIn.instance
           .authenticate(scopeHint: ['email', 'profile']);
-
-      final GoogleSignInAuthentication googleAuth =
-          await account.authentication;
+  
+      final GoogleSignInAuthentication googleAuth = await account.authentication;
       final googleIdToken = googleAuth.idToken;
-
+ 
       if (googleIdToken == null) {
         throw Exception('Failed to get Google ID token');
       }
       final credential = GoogleAuthProvider.credential(idToken: googleIdToken);
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
+      final userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential)
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw Exception('Sign-in timed out - connection issue'),
+          );
 
       final firebaseIdToken = await userCredential.user?.getIdToken(true);
 
       if (firebaseIdToken == null) {
         throw Exception('Failed to get Firebase ID token');
       }
+
       final response = await _apiClient.post(
         ApiEndpoints.googleSignIn,
         data: {'idToken': firebaseIdToken},
       );
+
 
       if (response.data['success'] == true) {
         final token = response.data['token'] as String;
@@ -178,7 +184,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
       throw Exception(response.data['message'] ?? 'Google sign in failed');
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        throw GoogleSignInCancelledException();
+        throw const GoogleSignInCancelledException();
       }
       throw Exception('Google sign in error: ${e.description}');
     } catch (e) {

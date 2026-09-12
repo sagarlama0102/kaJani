@@ -148,13 +148,13 @@ class _AuthInterceptor extends Interceptor {
   void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
-  ) {
+  ) async {
     final isPublic = _publicEndpoints.any(
       (endpoint) => options.path.contains(endpoint),
     );
 
     if (!isPublic) {
-      final token = _tokenService.getToken(); // ✅ sync, no await needed
+      final token = await _tokenService.getToken(); // ✅ sync, no await needed
       if (token != null) {
         options.headers['Authorization'] = 'Bearer $token';
       }
