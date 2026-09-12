@@ -51,7 +51,9 @@ dependencies:
   #skeleton loading
   shimmer: ^3.0.0
 
- 
+  #url_launcher
+  url_launcher: ^6.3.0
+  
 
   
   # Networking
@@ -144,11 +146,11 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
 fonts:
-    - family: ComicRelief
+    - family: Pally
       fonts:
-        - asset: assets/fonts/comicrelief_regular.ttf
+        - asset: assets/fonts/neco_regular.otf
           weight: 400
-        - asset: assets/fonts/comicrelief_bold.ttf
+        - asset: assets/fonts/pally_medium.otf
           weight: 700
     
   #       - asset: fonts/Schyler-Italic.ttf

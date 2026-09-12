@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:kajani/core/widgets/skeleton_box.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
-import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/plan_chat_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/create_plan_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
@@ -28,21 +32,81 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     });
   }
 
+  String _formatDate(String date) {
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date; // fallback, never crash
+    return DateFormat('EEE, d MMM yyyy').format(parsed);
+  }
+
+  // ─── Format "14:30" → "2:30 PM" (local Nepal time as stored) ────
+  String _formatTime(String time) {
+    final parsed = DateTime.tryParse('2000-01-01T$time');
+    if (parsed == null) return time;
+    return DateFormat('h:mm a').format(parsed);
+  }
+
+  Future<void> _openInMaps(String location) async {
+    final query = Uri.encodeComponent(location);
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$query',
+    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) SnackbarUtils.showError(context, 'Could not open Maps');
+    }
+  }
+
+  Future<void> _addToCalendar(PlanEntity plan) async {
+    final start = DateTime.tryParse('${plan.date}T${plan.time}');
+    if (start == null) {
+      SnackbarUtils.showError(context, 'Could not read the event date');
+      return;
+    }
+    DateTime end;
+    if (plan.endDate != null && plan.endTime != null) {
+      end =
+          DateTime.tryParse('${plan.endDate}T${plan.endTime}') ??
+          start.add(const Duration(hours: 2));
+    } else {
+      end = start.add(const Duration(hours: 2));
+    }
+    String fmt(DateTime d) =>
+        '${d.toUtc().toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.').first}Z';
+
+    final uri = Uri.parse(
+      'https://calendar.google.com/calendar/render'
+      '?action=TEMPLATE'
+      '&text=${Uri.encodeComponent(plan.title)}'
+      '&dates=${fmt(start)}/${fmt(end)}'
+      '&details=${Uri.encodeComponent(plan.description)}'
+      '&location=${Uri.encodeComponent(plan.location)}',
+    );
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) SnackbarUtils.showError(context, 'Could not open calendar');
+    }
+  }
+
   Future<void> _handleDelete(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff1A1A2E),
+        backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Plan', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text(
+          'Delete Plan',
+          style: TextStyle(color: context.textPrimary),
+        ),
+        content: Text(
           'Are you sure you want to delete this plan? This cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: context.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -52,7 +116,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         ],
       ),
     );
-
     if (confirm == true) {
       await ref.read(planViewModelProvider.notifier).deletePlan(widget.planId);
     }
@@ -62,30 +125,32 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff1A1A2E),
+        backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Join this plan?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: context.textPrimary),
         ),
-        content: const Text(
-          'You\'ll be added to this activity and can chat with other members once chat is available.',
-          style: TextStyle(color: Colors.white70),
+        content: Text(
+          "You'll be added to this activity and can chat with other members.",
+          style: TextStyle(color: context.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: context.textSecondary),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            style: ElevatedButton.styleFrom(backgroundColor: context.primary),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Join', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
-
     if (confirm == true) {
       await ref.read(planViewModelProvider.notifier).joinPlan(widget.planId);
     }
@@ -129,55 +194,47 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     final plan = planState.selectedPlan;
 
-    if (plan == null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
+    if (planState.status == PlanStatus.loading || plan == null) {
+      return Scaffold(
+        backgroundColor: context.backgroundColor,
+        body: _buildDetailSkeleton(),
       );
     }
-
     final isCreator = plan.creatorId == currentUserId;
     final isMember = plan.members?.contains(currentUserId) ?? false;
+    final isSaved = plan.savedBy?.contains(currentUserId) ?? false;
 
     return Scaffold(
+      backgroundColor: context.backgroundColor,
       body: Column(
         children: [
-          // ─── Scrollable Content ─────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ─── Cover Image + top buttons ──────────────
                   Stack(
                     children: [
                       Container(
-                        height: 240,
+                        height: 300,
                         width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: const Color(0xff1A1A2E),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(24),
-                            bottomRight: Radius.circular(24),
-                          ),
-                          image: plan.coverImage != null
-                              ? DecorationImage(
-                                  image: NetworkImage(
-                                    '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
-                                  ),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: plan.coverImage == null
-                            ? const Center(
-                                child: Icon(
-                                  Icons.image_outlined,
-                                  color: AppColors.primary,
+                        color: context.surfaceColor,
+                        child: plan.coverImage != null
+                            ? Image.network(
+                                '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Iconsax.image,
+                                  color: context.primary,
                                   size: 50,
                                 ),
                               )
-                            : null,
+                            : Icon(
+                                Iconsax.image,
+                                color: context.primary,
+                                size: 50,
+                              ),
                       ),
                       SafeArea(
                         child: Padding(
@@ -189,15 +246,16 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _circleIconButton(
-                                icon: Icons.arrow_back_ios_new,
+                                icon: Iconsax.arrow_left_2,
                                 onTap: () => AppRoutes.pop(context),
                               ),
                               _circleIconButton(
-                                icon:
-                                    plan.savedBy?.contains(currentUserId) ??
-                                        false
-                                    ? Icons.favorite
-                                    : Icons.favorite_border_outlined,
+                                icon: isSaved
+                                    ? Iconsax.heart_add
+                                    : Iconsax.heart,
+                                iconColor: isSaved
+                                    ? AppColors.error
+                                    : Colors.white,
                                 onTap: _handleSave,
                               ),
                             ],
@@ -207,7 +265,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                     ],
                   ),
 
-                  // ─── Content ──────────────────────────────────
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -220,159 +277,69 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: context.primary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             plan.category.toUpperCase(),
-                            style: const TextStyle(
-                              color: AppColors.primary,
+                            style: TextStyle(
+                              color: context.primary,
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 14),
 
                         // Title
                         Text(
                           plan.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
+                          style: TextStyle(
+                            color: context.textPrimary,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                             height: 1.3,
                           ),
                         ),
-
                         const SizedBox(height: 20),
 
-                        // ─── Date Card ──────────────────────────
+                        // ─── Date & Time card ─────────────────
                         _infoCard(
-                          icon: Icons.calendar_today_outlined,
-                          title: plan.date,
-                          subtitle: plan.time,
-                          trailingIcon: Icons.edit_calendar_outlined,
+                          icon: Iconsax.calendar_1,
+                          title: _formatDate(plan.date),
+                          subtitle:
+                              '${_formatTime(plan.time)}'
+                              '${plan.endTime != null ? ' - ${_formatTime(plan.endTime!)}' : ''}',
+                          trailing: Iconsax.calendar_add,
+                          onTrailingTap: () => _addToCalendar(plan),
                         ),
-
                         const SizedBox(height: 12),
 
-                        // ─── Location Card ─────────────────────
-                        _infoCard(
-                          icon: Icons.location_on_outlined,
-                          title: plan.location,
-                          subtitle: null,
-                          trailingIcon: Icons.map_outlined,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // ─── Members Card ───────────────────────
-                        _infoCard(
-                          icon: Icons.people_outline,
-                          title: plan.maxMembers != null
-                              ? '${plan.members?.length ?? 0} / ${plan.maxMembers} members'
-                              : '${plan.members?.length ?? 0} members joined',
-                          subtitle: null,
-                          trailingIcon: Icons.arrow_forward_ios,
-                        ),
-
-                        if (isCreator &&
-                            plan.memberDetails != null &&
-                            plan.memberDetails!.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Members',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        // ─── Location card (tappable → Maps) ──
+                        GestureDetector(
+                          onTap: () => _openInMaps(plan.location),
+                          child: _infoCard(
+                            icon: Iconsax.location,
+                            title: plan.location,
+                            subtitle: 'Tap to open in Maps',
+                            trailing: Iconsax.map,
                           ),
-                          const SizedBox(height: 12),
-                          ...plan.memberDetails!.map(
-                            (member) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: AppColors.primary,
-                                    backgroundImage:
-                                        member.profilePicture != null
-                                        ? NetworkImage(
-                                            member.profilePicture!.startsWith(
-                                                  'http',
-                                                )
-                                                ? member.profilePicture!
-                                                : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
-                                          )
-                                        : null,
-                                    child: member.profilePicture == null
-                                        ? Text(
-                                            member.firstName.isNotEmpty
-                                                ? member.firstName[0]
-                                                      .toUpperCase()
-                                                : '?',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      '${member.firstName} ${member.lastName}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (member.id == plan.creatorId)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary.withOpacity(
-                                          0.15,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Text(
-                                        'Creator',
-                                        style: TextStyle(
-                                          color: AppColors.primary,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
+                        const SizedBox(height: 20),
+                        _buildAttendeeStack(plan),
+                       
 
                         const SizedBox(height: 24),
-
-                        Divider(color: Colors.white.withOpacity(0.08)),
-
+                        Divider(color: context.borderColor),
                         const SizedBox(height: 24),
 
-                        // Description
-                        const Text(
+                        // ─── Description ──────────────────────
+                        Text(
                           'About this activity',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
+                            color: context.textPrimary,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -380,12 +347,11 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                         Text(
                           plan.description,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: context.textSecondary,
                             fontSize: 14,
                             height: 1.6,
                           ),
                         ),
-
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -395,154 +361,20 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
             ),
           ),
 
-          // ─── Bottom Fixed Action Bar ────────────────────────────
+          // ─── Bottom action bar ──────────────────────────────
           SafeArea(
             top: false,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
               decoration: BoxDecoration(
-                color: const Color(0xff0F0F0F),
-                border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.08)),
-                ),
+                color: context.backgroundColor,
+                border: Border(top: BorderSide(color: context.borderColor)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ─── Group Chat Button ──────────────────────────────
-                  if (isCreator || isMember) ...[
-                    GestureDetector(
-                      onTap: () {
-                        AppRoutes.push(
-                          context,
-                          PlanChatScreen(
-                            planId: widget.planId,
-                            planTitle: plan.title,
-                            planCoverImage: plan.coverImage,
-                            memberIds: plan.members ?? [],
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xff1A1A2E),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: AppColors.primary.withOpacity(0.4),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_rounded,
-                              color: AppColors.primary,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Group Chat',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  // ─── Creator Actions ────────────────────────────────
+                children: [                 
                   if (isCreator)
-                    Row(
-                      children: [
-                        // Edit Button
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () async {
-                              await AppRoutes.push(
-                                context,
-                                CreatePlanPage(existingPlan: plan),
-                              );
-                              ref
-                                  .read(planViewModelProvider.notifier)
-                                  .getPlanById(widget.planId);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xff1A1A2E),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.4),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.edit_outlined,
-                                    color: AppColors.primary,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Text(
-                                    'Edit',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Delete Button
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => _handleDelete(context),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              decoration: BoxDecoration(
-                                color: AppColors.error.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.error.withOpacity(0.4),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.delete_outline,
-                                    color: AppColors.error,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Delete',
-                                    style: TextStyle(
-                                      color: AppColors.error,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  // ─── Joiner Actions ─────────────────────────────────
+                    _buildCreatorActions(context, plan)
                   else
                     _buildJoinerActions(plan, isMember),
                 ],
@@ -554,11 +386,182 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     );
   }
 
-  // ─── Creator Actions (Edit / Delete icons) ───────────────────────
+  // ─── Attendee stack ─────────────────────────────────────────────
+  Widget _buildAttendeeStack(PlanEntity plan) {
+    final members = plan.memberDetails ?? [];
+    final displayCount = members.length > 4 ? 4 : members.length;
+    final total = plan.members?.length ?? members.length;
+
+    return Row(
+      children: [
+        if (displayCount > 0)
+          SizedBox(
+            width: 32.0 + (displayCount - 1) * 20,
+            
+            height: 32,
+            child: Stack(
+              children: List.generate(displayCount, (index) {
+                final member = members[index];
+                return Positioned(
+                  left: index * 18.0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: context.backgroundColor,
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: context.primary,
+                      backgroundImage: member.profilePicture != null
+                          ? NetworkImage(
+                              member.profilePicture!.startsWith('http')
+                                  ? member.profilePicture!
+                                  : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
+                            )
+                          : null,
+                      child: member.profilePicture == null
+                          ? Text(
+                              member.firstName.isNotEmpty
+                                  ? member.firstName[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        if (displayCount > 0) const SizedBox(width: 12),
+        Text(
+          plan.maxMembers != null
+              ? '$total / ${plan.maxMembers} going'
+              : '$total going',
+          style: TextStyle(
+            color: context.textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Reusable widgets ───────────────────────────────────────────
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color iconColor = Colors.white,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.4),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: iconColor, size: 20),
+      ),
+    );
+  }
+
+  Widget _infoCard({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    IconData? trailing,
+    VoidCallback? onTrailingTap,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: context.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: context.primary, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: context.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: context.textTertiary, fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null)
+            GestureDetector(
+              onTap: onTrailingTap,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                child: Icon(trailing, color: context.textPrimary, size: 20),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _outlinedButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, color: context.primary, size: 18),
+        label: Text(
+          label,
+          style: TextStyle(color: context.primary, fontWeight: FontWeight.w600),
+        ),
+        style: OutlinedButton.styleFrom(
+          side: BorderSide(color: context.primary),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCreatorActions(BuildContext context, PlanEntity plan) {
     return Row(
       children: [
-        // Edit icon button
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () async {
@@ -567,20 +570,16 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                   .read(planViewModelProvider.notifier)
                   .getPlanById(widget.planId);
             },
-            icon: const Icon(
-              Icons.edit_outlined,
-              color: AppColors.primary,
-              size: 18,
-            ),
-            label: const Text(
+            icon: Icon(Iconsax.edit, color: context.primary, size: 18),
+            label: Text(
               'Edit',
               style: TextStyle(
-                color: AppColors.primary,
+                color: context.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.primary),
+              side: BorderSide(color: context.primary),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -589,15 +588,10 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
           ),
         ),
         const SizedBox(width: 12),
-        // Delete icon button
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _handleDelete(context),
-            icon: const Icon(
-              Icons.delete_outline,
-              color: Colors.white,
-              size: 18,
-            ),
+            icon: const Icon(Iconsax.trash, color: Colors.white, size: 18),
             label: const Text(
               'Delete',
               style: TextStyle(
@@ -624,135 +618,83 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         plan.maxMembers != null &&
         (plan.members?.length ?? 0) >= plan.maxMembers!;
 
-    return GestureDetector(
-      onTap: isMember ? _handleLeave : (isFull ? null : _handleJoin),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: isMember
-              ? AppColors.error.withOpacity(0.1)
-              : isFull
-              ? Colors.grey.withOpacity(0.1)
-              : AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isMember ? _handleLeave : (isFull ? null : _handleJoin),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isMember ? context.surfaceColor : context.primary,
+          disabledBackgroundColor: context.surfaceColor,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: isMember
+                ? BorderSide(color: AppColors.error)
+                : BorderSide.none,
+          ),
+        ),
+        child: Text(
+          isMember ? 'Leave Event' : (isFull ? 'Event Full' : 'Attend Event'),
+          style: TextStyle(
             color: isMember
-                ? AppColors.error.withOpacity(0.4)
-                : isFull
-                ? Colors.grey.withOpacity(0.3)
-                : Colors.transparent,
+                ? AppColors.error
+                : (isFull ? context.textTertiary : Colors.white),
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isMember
-                  ? Icons.exit_to_app_rounded
-                  : isFull
-                  ? Icons.block_rounded
-                  : Icons.check_circle_outline_rounded,
-              color: isMember
-                  ? AppColors.error
-                  : isFull
-                  ? Colors.grey
-                  : Colors.white,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isMember
-                  ? 'Leave Plan'
-                  : isFull
-                  ? 'Plan is Full'
-                  : 'Join Plan',
-              style: TextStyle(
-                color: isMember
-                    ? AppColors.error
-                    : isFull
-                    ? Colors.grey
-                    : Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  // ─── Helper Widgets ───────────────────────────────────────────────
-  Widget _circleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.4),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
-
-  Widget _infoCard({
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    IconData? trailingIcon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xff1A1A2E),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
+  // ─── Skeleton for the detail page while the plan loads ──────────
+Widget _buildDetailSkeleton() {
+  return SkeletonShimmer(
+    child: SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
+          // Cover image block
+          const SkeletonBox(height: 300, radius: 0),
+          Padding(
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+              children: const [
+                // Category badge
+                SkeletonBox(width: 80, height: 24, radius: 20),
+                SizedBox(height: 14),
+                // Title (two lines)
+                SkeletonBox(height: 22, radius: 6),
+                SizedBox(height: 8),
+                SkeletonBox(width: 200, height: 22, radius: 6),
+                SizedBox(height: 20),
+                // Date card
+                SkeletonBox(height: 64, radius: 14),
+                SizedBox(height: 12),
+                // Location card
+                SkeletonBox(height: 64, radius: 14),
+                SizedBox(height: 20),
+                // Attendee row
+                SkeletonBox(width: 160, height: 32, radius: 16),
+                SizedBox(height: 24),
+                // Description heading
+                SkeletonBox(width: 140, height: 16, radius: 4),
+                SizedBox(height: 12),
+                // Description lines
+                SkeletonBox(height: 12, radius: 4),
+                SizedBox(height: 8),
+                SkeletonBox(height: 12, radius: 4),
+                SizedBox(height: 8),
+                SkeletonBox(width: 220, height: 12, radius: 4),
               ],
             ),
           ),
-          if (trailingIcon != null)
-            Icon(trailingIcon, color: Colors.white.withOpacity(0.3), size: 18),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

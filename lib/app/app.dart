@@ -20,7 +20,7 @@ class App extends StatelessWidget {
   ThemeData _lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: 'ComicRelief',
+      fontFamily: 'Pally',
       scaffoldBackgroundColor: AppColors.background,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.light(
@@ -73,7 +73,7 @@ class App extends StatelessWidget {
   ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
-      fontFamily: 'ComicRelief',
+      fontFamily: 'Pally',
       scaffoldBackgroundColor: AppColors.darkBackground,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.dark(

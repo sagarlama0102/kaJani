@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/features/chat/presentation/pages/chat_coming_soon.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/chat_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/explore_screen.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/home_screen.dart';
@@ -20,7 +21,7 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
     HomeScreen(),
     ExploreScreen(),
     NotificationScreen(),
-    ChatScreen(),
+    ChatComingSoonScreen(),
 
   ];
   @override
