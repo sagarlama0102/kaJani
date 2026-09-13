@@ -270,6 +270,57 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (isMember && !isCreator) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.success.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Iconsax.tick_circle,
+                                  color: AppColors.success,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "You're going!",
+                                        style: TextStyle(
+                                          color: AppColors.success,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "You've joined this event. See you there",
+                                        style: TextStyle(
+                                          color: context.textSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         // Category badge
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -328,7 +379,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                         ),
                         const SizedBox(height: 20),
                         _buildAttendeeStack(plan),
-                       
 
                         const SizedBox(height: 24),
                         Divider(color: context.borderColor),
@@ -372,7 +422,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [                 
+                children: [
                   if (isCreator)
                     _buildCreatorActions(context, plan)
                   else
@@ -397,7 +447,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         if (displayCount > 0)
           SizedBox(
             width: 32.0 + (displayCount - 1) * 20,
-            
+
             height: 32,
             child: Stack(
               children: List.generate(displayCount, (index) {
@@ -649,52 +699,52 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   // ─── Skeleton for the detail page while the plan loads ──────────
-Widget _buildDetailSkeleton() {
-  return SkeletonShimmer(
-    child: SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cover image block
-          const SkeletonBox(height: 300, radius: 0),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                // Category badge
-                SkeletonBox(width: 80, height: 24, radius: 20),
-                SizedBox(height: 14),
-                // Title (two lines)
-                SkeletonBox(height: 22, radius: 6),
-                SizedBox(height: 8),
-                SkeletonBox(width: 200, height: 22, radius: 6),
-                SizedBox(height: 20),
-                // Date card
-                SkeletonBox(height: 64, radius: 14),
-                SizedBox(height: 12),
-                // Location card
-                SkeletonBox(height: 64, radius: 14),
-                SizedBox(height: 20),
-                // Attendee row
-                SkeletonBox(width: 160, height: 32, radius: 16),
-                SizedBox(height: 24),
-                // Description heading
-                SkeletonBox(width: 140, height: 16, radius: 4),
-                SizedBox(height: 12),
-                // Description lines
-                SkeletonBox(height: 12, radius: 4),
-                SizedBox(height: 8),
-                SkeletonBox(height: 12, radius: 4),
-                SizedBox(height: 8),
-                SkeletonBox(width: 220, height: 12, radius: 4),
-              ],
+  Widget _buildDetailSkeleton() {
+    return SkeletonShimmer(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cover image block
+            const SkeletonBox(height: 300, radius: 0),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  // Category badge
+                  SkeletonBox(width: 80, height: 24, radius: 20),
+                  SizedBox(height: 14),
+                  // Title (two lines)
+                  SkeletonBox(height: 22, radius: 6),
+                  SizedBox(height: 8),
+                  SkeletonBox(width: 200, height: 22, radius: 6),
+                  SizedBox(height: 20),
+                  // Date card
+                  SkeletonBox(height: 64, radius: 14),
+                  SizedBox(height: 12),
+                  // Location card
+                  SkeletonBox(height: 64, radius: 14),
+                  SizedBox(height: 20),
+                  // Attendee row
+                  SkeletonBox(width: 160, height: 32, radius: 16),
+                  SizedBox(height: 24),
+                  // Description heading
+                  SkeletonBox(width: 140, height: 16, radius: 4),
+                  SizedBox(height: 12),
+                  // Description lines
+                  SkeletonBox(height: 12, radius: 4),
+                  SizedBox(height: 8),
+                  SkeletonBox(height: 12, radius: 4),
+                  SizedBox(height: 8),
+                  SkeletonBox(width: 220, height: 12, radius: 4),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

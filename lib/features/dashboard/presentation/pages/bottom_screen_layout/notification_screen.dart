@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
+import 'package:kajani/core/widgets/empty_state.dart';
+import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
 import 'package:kajani/features/notification/domain/entities/notification_entity.dart';
 import 'package:kajani/features/notification/presentation/state/notification_state.dart';
 import 'package:kajani/features/notification/presentation/view_model/notification_view_model.dart';
-
 
 class NotificationScreen extends ConsumerStatefulWidget {
   const NotificationScreen({super.key});
@@ -20,7 +22,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Future.microtask(() {
       ref.read(notificationViewModelProvider.notifier).getNotifications();
     });
   }
@@ -39,8 +41,18 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
   String _monthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }
@@ -49,15 +61,14 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Clear all notifications?',
-          style: TextStyle(color: Colors.white, fontSize: 16),
+          style: TextStyle(color: context.textPrimary, fontSize: 16),
         ),
         content: Text(
           'This will remove all your notifications permanently.',
-          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+          style: TextStyle(color: context.textSecondary, fontSize: 13),
         ),
         actions: [
           TextButton(
@@ -67,7 +78,6 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-             
             },
             child: Text('Clear All', style: TextStyle(color: AppColors.error)),
           ),
@@ -81,7 +91,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     final notificationState = ref.watch(notificationViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      backgroundColor: context.surfaceColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,10 +102,10 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Notifications',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.textPrimary,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       letterSpacing: -0.5,
@@ -125,7 +135,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                           child: Text(
                             'Clear all',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.4),
+                              color: context.textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -142,31 +152,46 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
             // ─── Notifications List ────────────────────────────────
             Expanded(
-              child: notificationState.status == NotificationStatus.loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
+              child:
+                  (notificationState.status == NotificationStatus.loading ||
+                      notificationState.status == NotificationStatus.initial)
+                  ? _buildNotificationSkeleton()
+                  : notificationState.notifications.isEmpty
+                  ? RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async => ref
+                          .read(notificationViewModelProvider.notifier)
+                          .getNotifications(),
+
+                      child: ListView(
+                        children: [
+                          SizedBox(height: 80),
+                          SizedBox(
+                            width: double.infinity,
+                            child: EmptyState(
+                              imagePath: 'assets/images/notification_empty.png',
+                              title: "No notifications yet",
+                              message:
+                                  "When someone joins your plan, you'll see it here.",
+                            ),
+                          ),
+                        ],
                       ),
                     )
-                  : notificationState.notifications.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
-                          color: AppColors.primary,
-                          backgroundColor: const Color(0xff1A1A2E),
-                          onRefresh: () async => ref
-                              .read(notificationViewModelProvider.notifier)
-                              .getNotifications(),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount:
-                                notificationState.notifications.length,
-                            itemBuilder: (context, index) {
-                              return _buildNotificationRow(
-                                notificationState.notifications[index],
-                              );
-                            },
-                          ),
+                  : RefreshIndicator(
+                      color: AppColors.primary,
+                      onRefresh: () async => ref
+                          .read(notificationViewModelProvider.notifier)
+                          .getNotifications(),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: notificationState.notifications.length,
+                        itemBuilder: (context, index) => _buildNotificationRow(
+                          notificationState
+                              .notifications[index], //pass the notification
                         ),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -186,10 +211,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               .markAsRead(notification.id);
         }
         if (notification.planId.isNotEmpty) {
-          AppRoutes.push(
-            context,
-            PlanDetailPage(planId: notification.planId),
-          );
+          AppRoutes.push(context, PlanDetailPage(planId: notification.planId));
         }
       },
       child: Container(
@@ -199,10 +221,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               ? Colors.transparent
               : AppColors.primary.withOpacity(0.04),
           border: Border(
-            bottom: BorderSide(
-              color: Colors.white.withOpacity(0.05),
-              width: 1,
-            ),
+            bottom: BorderSide(color: context.textSecondary, width: 1),
           ),
         ),
         child: Row(
@@ -238,7 +257,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                   Text(
                     _formatTime(notification.createdAt),
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.35),
+                      color: context.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -279,7 +298,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
       return RichText(
         text: TextSpan(
           style: TextStyle(
-            color: Colors.white.withOpacity(0.85),
+            color: context.textSecondary,
             fontSize: 14,
             height: 1.4,
           ),
@@ -287,8 +306,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
             TextSpan(text: parts[0]),
             TextSpan(
               text: planTitle,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -300,11 +319,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
     return Text(
       message,
-      style: TextStyle(
-        color: Colors.white.withOpacity(0.85),
-        fontSize: 14,
-        height: 1.4,
-      ),
+      style: TextStyle(color: context.textSecondary, fontSize: 14, height: 1.4),
     );
   }
 
@@ -325,8 +340,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               notification.senderFirstName?.isNotEmpty == true
                   ? notification.senderFirstName![0].toUpperCase()
                   : '?',
-              style: const TextStyle(
-                color: Colors.white,
+              style:  TextStyle(
+                color: context.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -352,44 +367,39 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
   }
 
-  // ─── Empty State ──────────────────────────────────────────────────
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.primary.withOpacity(0.5),
-              size: 48,
-            ),
+  // ─── Skeleton while notifications load ──────────────────────────
+  Widget _buildNotificationSkeleton() {
+    return SkeletonShimmer(
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 6,
+        itemBuilder: (context, index) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              SkeletonBox(width: 56, height: 56, radius: 10), // thumbnail
+              SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonBox(height: 13, radius: 4), // message line 1
+                    SizedBox(height: 6),
+                    SkeletonBox(
+                      width: 180,
+                      height: 13,
+                      radius: 4,
+                    ), // message line 2
+                    SizedBox(height: 8),
+                    SkeletonBox(width: 60, height: 10, radius: 4), // time
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'No notifications yet',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'When someone joins your plan\nyou\'ll see it here',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.4),
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
