@@ -5,6 +5,7 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/widgets/empty_state.dart';
+import 'package:kajani/core/widgets/error_state.dart';
 import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
 import 'package:kajani/features/notification/domain/entities/notification_entity.dart';
@@ -156,6 +157,17 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                   (notificationState.status == NotificationStatus.loading ||
                       notificationState.status == NotificationStatus.initial)
                   ? _buildNotificationSkeleton()
+                  : notificationState.status ==
+                        NotificationStatus
+                            .error //
+                  ? ErrorStateView(
+                      message:
+                          notificationState.errorMessage ??
+                          'Could not load notifications. Check your connection and try again.',
+                      onRetry: () => ref
+                          .read(notificationViewModelProvider.notifier)
+                          .getNotifications(),
+                    )
                   : notificationState.notifications.isEmpty
                   ? RefreshIndicator(
                       color: AppColors.primary,
@@ -340,7 +352,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               notification.senderFirstName?.isNotEmpty == true
                   ? notification.senderFirstName![0].toUpperCase()
                   : '?',
-              style:  TextStyle(
+              style: TextStyle(
                 color: context.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,

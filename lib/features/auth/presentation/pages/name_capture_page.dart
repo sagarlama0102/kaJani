@@ -152,7 +152,7 @@ class _NameCapturePageState extends ConsumerState<NameCapturePage> {
                         controller: _nameController,
                         style: TextStyle(color: context.textSecondary),
                         decoration: _inputDecoration(
-                          hint: 'Sagar Lama',
+                          hint: 'Full Name',
                           icon: Icons.person_outline,
                         ),
                         validator: (value) {
@@ -170,7 +170,7 @@ class _NameCapturePageState extends ConsumerState<NameCapturePage> {
                         controller: _usernameController,
                         style: TextStyle(color: context.textSecondary),
                         decoration: _inputDecoration(
-                          hint: 'sagarlama',
+                          hint: 'username',
                           icon: Icons.alternate_email,
                         ),
                         validator: (value) {

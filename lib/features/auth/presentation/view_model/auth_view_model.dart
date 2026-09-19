@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kajani/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/google_signin_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/login_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/register_usecase.dart';
-import 'package:kajani/features/auth/domain/usecases/upload_photo_usecase.dart';
+import 'package:kajani/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/domain/usecases/complete_profile_usecase.dart'; //add
 
@@ -21,7 +22,8 @@ class AuthViewModel extends Notifier<AuthState> {
   late final LogoutUsecase _logoutUsecase;
   late final GetCurrentUserUsecase _getCurrentUserUsecase;
   late final GoogleSignInUsecase _googleSignInUsecase;
-  late final UploadPhotoUsecase _uploadPhotoUsecase;
+  late final UpdateProfileUsecase _updateProfileUsecase;
+  late final DeleteAccountUsecase _deleteAccountUsecase;
 
   @override
   AuthState build() {
@@ -31,7 +33,8 @@ class AuthViewModel extends Notifier<AuthState> {
     _logoutUsecase = ref.read(logoutUsecaseProvider);
     _getCurrentUserUsecase = ref.read(getCurrentUserUsecaseProvider);
     _googleSignInUsecase = ref.read(googleSignInUsecaseProvider);
-    _uploadPhotoUsecase = ref.read(uploadPhotoUsecaseProvider);
+    _updateProfileUsecase = ref.read(updateProfileUsecaseProvider);
+    _deleteAccountUsecase = ref.read(deleteAccountUsecaseProvider);
     return AuthState();
   }
 
@@ -57,32 +60,32 @@ class AuthViewModel extends Notifier<AuthState> {
   }
 
   // ─── Complete Profile (Name Capture step) ────────────────────────
-Future<void> completeProfile({
-  required String firstName,
-  required String lastName,
-  required String username,
-}) async {
-  state = state.copyWith(status: AuthStatus.loading);
+  Future<void> completeProfile({
+    required String firstName,
+    required String lastName,
+    required String username,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
 
-  final result = await _completeProfileUsecase(
-    CompleteProfileParams(
-      firstName: firstName,
-      lastName: lastName,
-      username: username,
-    ),
-  );
+    final result = await _completeProfileUsecase(
+      CompleteProfileParams(
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+      ),
+    );
 
-  result.fold(
-    (failure) => state = state.copyWith(
-      status: AuthStatus.error,
-      errorMessage: failure.message,
-    ),
-    (authEntity) => state = state.copyWith(
-      status: AuthStatus.authenticated, 
-      authEntity: authEntity,
-    ),
-  );
-}
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (authEntity) => state = state.copyWith(
+        status: AuthStatus.authenticated,
+        authEntity: authEntity,
+      ),
+    );
+  }
 
   // ─── Login ─────────────────────────────────────────────────────
   Future<void> login({required String email, required String password}) async {
@@ -162,23 +165,36 @@ Future<void> completeProfile({
     );
   }
 
-  // ─── Upload Photo ──────────────────────────────────────────────
-  Future<void> uploadPhoto(File photo) async {
+  Future<void> updateProfile({String? username, File? photo}) async {
     state = state.copyWith(status: AuthStatus.loading);
-
-    final result = await _uploadPhotoUsecase(UploadPhotoParams(photo: photo));
+    final result = await _updateProfileUsecase(
+      UpdateProfileParams(username: username, photo: photo),
+    );
 
     result.fold(
       (failure) => state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: failure.message,
       ),
-      (url) => state = state.copyWith(
-        status: AuthStatus.loaded,
-        uploadedPhotoUrl: url,
-      ),
+      (user) => state = state.copyWith(status: AuthStatus.profileUpdated),
     );
   }
+  // ─── Delete Account ─────────────────────────────────────────────
+Future<void> deleteAccount() async {
+  state = state.copyWith(status: AuthStatus.loading);
+
+  final result = await _deleteAccountUsecase();
+
+  result.fold(
+    (failure) => state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage: failure.message,
+    ),
+    (_) => state = state.copyWith(
+      status: AuthStatus.unauthenticated, // account gone → treat as logged out
+    ),
+  );
+}
 
   // ─── Reset Error ───────────────────────────────────────────────
   void resetError() {

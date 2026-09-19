@@ -37,11 +37,14 @@ abstract interface class IAuthRemoteDataSource {
 
   Future<void> logout();
 
-  Future<String> uploadPhoto(File photo);
+  Future<UserApiModel> updateProfile({String? username, File? photo});
+
 
   Future<(AuthApiModel, UserApiModel)> completeProfile({
     required String firstName,
     required String lastName,
     required String username,
   });
+
+  Future<void> deleteAccount();
 }

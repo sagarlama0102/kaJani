@@ -60,6 +60,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         phoneNumber: userJson['phoneNumber'],
         token: token,
         isOnboarded: false,
+        isAdmin: false,
         profilePicture: userJson['profilePicture'],
       );
 
@@ -101,6 +102,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         phoneNumber: userJson['phoneNumber'],
         token: token,
         isOnboarded: userJson['isOnboarded'] ?? false,
+        isAdmin: userJson['isAdmin'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
 
@@ -120,16 +122,16 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<(AuthApiModel, UserApiModel)> signInWithGoogle() async {
     try {
-    
       await GoogleSignIn.instance.signOut();
       await FirebaseAuth.instance.signOut();
-   
+
       final GoogleSignInAccount account = await GoogleSignIn.instance
           .authenticate(scopeHint: ['email', 'profile']);
-  
-      final GoogleSignInAuthentication googleAuth = await account.authentication;
+
+      final GoogleSignInAuthentication googleAuth =
+          await account.authentication;
       final googleIdToken = googleAuth.idToken;
- 
+
       if (googleIdToken == null) {
         throw Exception('Failed to get Google ID token');
       }
@@ -153,7 +155,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         data: {'idToken': firebaseIdToken},
       );
 
-
       if (response.data['success'] == true) {
         final token = response.data['token'] as String;
         final userJson = response.data['data'] as Map<String, dynamic>;
@@ -168,6 +169,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
           phoneNumber: userJson['phoneNumber'],
           token: token,
           isOnboarded: userJson['isOnboarded'] ?? false,
+          isAdmin: userJson['isAdmin'] ?? false,
           profilePicture: userJson['profilePicture'],
         );
 
@@ -196,10 +198,12 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<UserApiModel> getCurrentUser() async {
     final response = await _apiClient.get(ApiEndpoints.whoAmI);
+    
     if (response.data['success'] == true) {
       final userJson = response.data['data']['user'] as Map<String, dynamic>;
+     
 
-      // 👈 refresh the saved session with the latest backend truth
+      //  refresh the saved session with the latest backend truth
       final currentToken = _userSessionService.getToken() ?? '';
       await _userSessionService.saveUserSession(
         userId: userJson['id'],
@@ -209,7 +213,8 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: currentToken,
-        isOnboarded: userJson['isOnboarded'] ?? false,
+        isOnboarded: userJson['isOnboarded'] ?? _userSessionService.isOnboarded(),
+        isAdmin: userJson['isAdmin'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
 
@@ -227,16 +232,21 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     await GoogleSignIn.instance.signOut();
   }
 
-  // ─── Upload Photo ────────────────────────────────────────────────
   @override
-  Future<String> uploadPhoto(File photo) async {
-    final fileName = photo.path.split('/').last;
-    final formData = FormData.fromMap({
-      'profilePicture': await MultipartFile.fromFile(
+  Future<UserApiModel> updateProfile({String? username, File? photo}) async {
+    final Map<String, dynamic> formMap = {};
+
+    if (username != null) {
+      formMap['username'] = username;
+    }
+    if (photo != null) {
+      final fileName = photo.path.split('/').last;
+      formMap['profilePicture'] = await MultipartFile.fromFile(
         photo.path,
         filename: fileName,
-      ),
-    });
+      );
+    }
+    final formData = FormData.fromMap(formMap);
 
     final response = await _apiClient.uploadFile(
       ApiEndpoints.userUploadPhoto,
@@ -244,34 +254,28 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     );
 
     if (response.data['success'] == true) {
-      final profilePicture =
-          response.data['data']['user']['profilePicture'] as String;
+      final userJson = response.data['data']['user'] as Map<String, dynamic>;
+      
 
-      final currentUserId = _userSessionService.getUserId() ?? '';
-      final currentEmail = _userSessionService.getUserEmail() ?? '';
-      final currentUsername = _userSessionService.getUsername() ?? '';
-      final currentFirstName = _userSessionService.getUserFirstName() ?? '';
-      final currentLastName = _userSessionService.getUserLastName() ?? '';
-      final currentPhone = _userSessionService.getUserPhoneNumber();
+      // Re-save session with the updated fields, preserving everything else
       final currentToken = _userSessionService.getToken() ?? '';
-      final currentIsOnboarded = _userSessionService.isOnboarded();
-
       await _userSessionService.saveUserSession(
-        userId: currentUserId,
-        email: currentEmail,
-        username: currentUsername,
-        firstName: currentFirstName,
-        lastName: currentLastName,
-        phoneNumber: currentPhone,
+        userId: userJson['id'] ?? _userSessionService.getUserId() ?? '',
+        email: userJson['email'] ?? _userSessionService.getUserEmail() ?? '',
+        username: userJson['username'],
+        firstName: userJson['firstName'],
+        lastName: userJson['lastName'],
+        phoneNumber: userJson['phoneNumber'],
         token: currentToken,
-        isOnboarded: currentIsOnboarded,
-        profilePicture: profilePicture,
+        isOnboarded:
+             _userSessionService.isOnboarded(),
+        isAdmin: _userSessionService.isAdmin(),
+        profilePicture: userJson['profilePicture'],
       );
-
-      return profilePicture;
+      
+      return UserApiModel.fromJson(userJson);
     }
-
-    throw Exception(response.data['message'] ?? 'Upload failed');
+    throw Exception(response.data['message'] ?? 'Failed to update profile');
   }
 
   @override
@@ -302,9 +306,11 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
-        isOnboarded: userJson['isOnboarded'] ?? true, //
+        isOnboarded: userJson['isOnboarded'] ?? _userSessionService.isOnboarded(), 
+        isAdmin: userJson['isAdmin'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
+
       final authModel = AuthApiModel(
         authId: userJson['id'],
         email: userJson['email'],
@@ -316,4 +322,18 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     }
     throw Exception(response.data['message'] ?? 'Failed to complete profile');
   }
+
+
+  @override
+Future<void> deleteAccount() async {
+  final response = await _apiClient.delete(ApiEndpoints.deleteAccount);
+
+  if (response.data['success'] == true) {
+    // account is gone — wipe everything locally
+    await _tokenService.deleteToken();
+    await _userSessionService.clearUserSession();
+    return;
+  }
+  throw Exception(response.data['message'] ?? 'Failed to delete account');
+}
 }

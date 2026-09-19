@@ -192,22 +192,6 @@ class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-  // ─── Upload Photo ──────────────────────────────────────────────
-  @override
-  Future<Either<Failure, String>> uploadPhoto(File photo) async {
-    if (await _networkInfo.isConnected) {
-      try {
-        final photoUrl = await _remoteDatasource.uploadPhoto(
-          photo,
-        ); // 👈 actually call it
-        return Right(photoUrl);
-      } catch (e) {
-        return Left(ApiFailure(message: e.toString()));
-      }
-    } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
-    }
-  }
 
   @override
   Future<Either<Failure, AuthEntity>> completeProfile({
@@ -242,4 +226,57 @@ class AuthRepositoryImpl implements IAuthRepository {
       return const Left(NetworkFailure(message: 'No internet connection'));
     }
   }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? username,
+    File? photo,
+  }) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final userModel = await _remoteDatasource.updateProfile(
+          username: username,
+          photo: photo,
+        );
+        return Right(userModel.toEntity());
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? 'Failed to update profile',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
+
+  // ─── Delete Account ─────────────────────────────────────────────
+@override
+Future<Either<Failure, void>> deleteAccount() async {
+  if (await _networkInfo.isConnected) {
+    try {
+      await _remoteDatasource.deleteAccount();
+
+      // account is gone — clear the Hive cache too
+      await _localDatasource.logout();
+
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.response?.data['message'] ?? 'Failed to delete account',
+          statusCode: e.response?.statusCode,
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  } else {
+    return const Left(NetworkFailure(message: 'No internet connection'));
+  }
+}
 }

@@ -8,6 +8,7 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   registered,
+  profileUpdated,
   error,
 }
 
@@ -15,13 +16,11 @@ class AuthState extends Equatable {
   final AuthStatus status;
   final AuthEntity? authEntity;
   final String? errorMessage;
-  final String? uploadedPhotoUrl;
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.authEntity,
     this.errorMessage,
-    this.uploadedPhotoUrl,
   });
 
   AuthState copyWith({
@@ -35,17 +34,9 @@ class AuthState extends Equatable {
       status: status ?? this.status,
       authEntity: authEntity ?? this.authEntity,
       errorMessage: errorMessage ?? this.errorMessage,
-      uploadedPhotoUrl: resetUploadedPhotoUrl
-          ? null
-          : (uploadedPhotoUrl ?? this.uploadedPhotoUrl),
     );
   }
 
   @override
-  List<Object?> get props => [
-        status,
-        authEntity,
-        errorMessage,
-        uploadedPhotoUrl,
-      ];
+  List<Object?> get props => [status, authEntity, errorMessage];
 }

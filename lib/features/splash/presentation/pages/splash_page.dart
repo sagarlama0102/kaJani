@@ -88,6 +88,7 @@ Future<void> _navigateToNext() async {
     final authState = ref.read(authViewModelProvider);
     if (authState.status == AuthStatus.authenticated) {
       final isOnboarded = userSessionService.isOnboarded();
+      
       if(!isOnboarded){
         AppRoutes.pushReplacement(context, const NameCapturePage());
       }else{

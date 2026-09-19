@@ -14,6 +14,7 @@ class ApiEndpoints {
   static const String completeProfile = 'auth/complete-profile';
   static const String whoAmI = 'auth/whoami';
   static const String userUploadPhoto = 'auth/update-profile';
+  static const String deleteAccount = 'auth/account';
 
   static const String getAllPlans = 'plans';
   static const String myPlans = 'plans/user/my-plans';

@@ -6,6 +6,7 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/core/widgets/error_state.dart';
 import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
@@ -228,6 +229,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   (planState.status == PlanStatus.loading ||
                       planState.status == PlanStatus.initial)
                   ? _buildPlansSkeleton()
+                  : planState.status == PlanStatus.error
+                  ? ErrorStateView(
+                    message: planState.errorMessage ?? 'Could not load events. Check your connection and try again.',
+                    onRetry: _fetchPlans,
+                  )
                   : plans.isEmpty
                   ? Center(
                       child: Text(
@@ -236,6 +242,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           color: context.textSecondary,
                           fontSize: 14,
                         ),
+                       
                       ),
                     )
                   : RefreshIndicator(

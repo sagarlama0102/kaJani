@@ -340,7 +340,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         }
       } catch (e) {
         // if upload fails, create plan without image
-        print('Image upload failed: $e');
+        
       }
     }
     final isEditMode = widget.existingPlan != null;

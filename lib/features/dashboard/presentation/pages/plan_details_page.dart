@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:kajani/core/widgets/error_state.dart';
 import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kajani/app/routes/app_routes.dart';
@@ -146,7 +147,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: context.primary),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Join', style: TextStyle(color: Colors.white)),
+            child: Text('Join', style: TextStyle(color: context.textPrimary)),
           ),
         ],
       ),
@@ -194,6 +195,29 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     final plan = planState.selectedPlan;
 
+    // ─── Error state — MUST come before the loading/null guard ──────
+    if (planState.status == PlanStatus.error) {
+      return Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: context.backgroundColor,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
+            onPressed: () => AppRoutes.pop(context),
+          ),
+        ),
+        body: ErrorStateView(
+          message:
+              planState.errorMessage ??
+              'Could not load this event. Check your connection and try again.',
+          onRetry: () => ref
+              .read(planViewModelProvider.notifier)
+              .getPlanById(widget.planId),
+        ),
+      );
+    }
+
     if (planState.status == PlanStatus.loading || plan == null) {
       return Scaffold(
         backgroundColor: context.backgroundColor,
@@ -209,47 +233,80 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ─── Cover Image + top buttons ──────────────
-                  Stack(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // ─────────────────────────────────────────
+                // Hero image
+                // ─────────────────────────────────────────
+                SliverToBoxAdapter(
+                  child: Stack(
                     children: [
-                      Container(
-                        height: 300,
+                      SizedBox(
+                        height: 330,
                         width: double.infinity,
-                        color: context.surfaceColor,
                         child: plan.coverImage != null
                             ? Image.network(
                                 '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: context.surfaceColor,
+                                  child: Icon(
+                                    Iconsax.image,
+                                    color: context.primary,
+                                    size: 50,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: context.surfaceColor,
+                                child: Icon(
                                   Iconsax.image,
                                   color: context.primary,
                                   size: 50,
                                 ),
-                              )
-                            : Icon(
-                                Iconsax.image,
-                                color: context.primary,
-                                size: 50,
                               ),
                       ),
+
+                      // Bottom gradient
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 130,
+                        child: IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  context.backgroundColor,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Top controls
                       SafeArea(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 8,
+                            vertical: 10,
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _circleIconButton(
+                                context: context,
                                 icon: Iconsax.arrow_left_2,
                                 onTap: () => AppRoutes.pop(context),
                               ),
                               _circleIconButton(
+                                context: context,
                                 icon: isSaved
                                     ? Iconsax.heart_add
                                     : Iconsax.heart,
@@ -264,12 +321,18 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                       ),
                     ],
                   ),
+                ),
 
-                  Padding(
-                    padding: const EdgeInsets.all(20),
+                // ─────────────────────────────────────────
+                // Main content
+                // ─────────────────────────────────────────
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Joined status
                         if (isMember && !isCreator) ...[
                           Container(
                             width: double.infinity,
@@ -278,10 +341,12 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.success.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: AppColors.success.withValues(alpha: 0.4),
+                                color: AppColors.success.withValues(
+                                  alpha: 0.25,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -319,43 +384,47 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                               ],
                             ),
                           ),
+                          const SizedBox(height: 22),
                         ],
 
-                        // Category badge
+                        // Category
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
+                            horizontal: 11,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: context.primary.withValues(alpha: 0.12),
+                            color: context.primary.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             plan.category.toUpperCase(),
                             style: TextStyle(
                               color: context.primary,
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.7,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
+
+                        const SizedBox(height: 12),
 
                         // Title
                         Text(
                           plan.title,
                           style: TextStyle(
                             color: context.textPrimary,
-                            fontSize: 24,
+                            fontSize: 27,
                             fontWeight: FontWeight.bold,
-                            height: 1.3,
+                            height: 1.18,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                        const SizedBox(height: 20),
 
-                        // ─── Date & Time card ─────────────────
+                        const SizedBox(height: 22),
+
+                        // Date
                         _infoCard(
                           icon: Iconsax.calendar_1,
                           title: _formatDate(plan.date),
@@ -365,9 +434,10 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           trailing: Iconsax.calendar_add,
                           onTrailingTap: () => _addToCalendar(plan),
                         ),
-                        const SizedBox(height: 12),
 
-                        // ─── Location card (tappable → Maps) ──
+                        const SizedBox(height: 10),
+
+                        // Location
                         GestureDetector(
                           onTap: () => _openInMaps(plan.location),
                           child: _infoCard(
@@ -377,58 +447,68 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                             trailing: Iconsax.map,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        _buildAttendeeStack(plan),
 
-                        const SizedBox(height: 24),
-                        Divider(color: context.borderColor),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 22),
 
-                        // ─── Description ──────────────────────
+                        // Attendees
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: context.borderColor),
+                          ),
+                          child: _buildAttendeeStack(plan),
+                        ),
+
+                        const SizedBox(height: 26),
+
+                        // About
                         Text(
                           'About this activity',
                           style: TextStyle(
                             color: context.textPrimary,
-                            fontSize: 16,
+                            fontSize: 17,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
+
+                        const SizedBox(height: 10),
+
                         Text(
                           plan.description,
                           style: TextStyle(
                             color: context.textSecondary,
                             fontSize: 14,
-                            height: 1.6,
+                            height: 1.65,
                           ),
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
-          // ─── Bottom action bar ──────────────────────────────
+          // ─────────────────────────────────────────────
+          // Bottom actions
+          // ─────────────────────────────────────────────
           SafeArea(
             top: false,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
               decoration: BoxDecoration(
-                color: context.backgroundColor,
+                color: context.surfaceColor,
                 border: Border(top: BorderSide(color: context.borderColor)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isCreator)
-                    _buildCreatorActions(context, plan)
-                  else
-                    _buildJoinerActions(plan, isMember),
-                ],
-              ),
+              child: isCreator
+                  ? _buildCreatorActions(context, plan)
+                  : _buildJoinerActions(plan, isMember),
             ),
           ),
         ],
@@ -447,20 +527,17 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
         if (displayCount > 0)
           SizedBox(
             width: 32.0 + (displayCount - 1) * 20,
-
             height: 32,
             child: Stack(
               children: List.generate(displayCount, (index) {
                 final member = members[index];
+
                 return Positioned(
                   left: index * 18.0,
                   child: Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: context.backgroundColor,
-                        width: 2,
-                      ),
+                      border: Border.all(color: context.surfaceColor, width: 2),
                     ),
                     child: CircleAvatar(
                       radius: 14,
@@ -490,15 +567,19 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               }),
             ),
           ),
+
         if (displayCount > 0) const SizedBox(width: 12),
-        Text(
-          plan.maxMembers != null
-              ? '$total / ${plan.maxMembers} going'
-              : '$total going',
-          style: TextStyle(
-            color: context.textPrimary,
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+
+        Expanded(
+          child: Text(
+            plan.maxMembers != null
+                ? '$total / ${plan.maxMembers} going'
+                : '$total going',
+            style: TextStyle(
+              color: context.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -507,6 +588,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
   // ─── Reusable widgets ───────────────────────────────────────────
   Widget _circleIconButton({
+    required BuildContext context,
     required IconData icon,
     required VoidCallback onTap,
     Color iconColor = Colors.white,
@@ -514,10 +596,12 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        width: 42,
+        height: 42,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.4),
+          color: Colors.black.withValues(alpha: 0.42),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
         ),
         child: Icon(icon, color: iconColor, size: 20),
       ),
@@ -532,53 +616,72 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     VoidCallback? onTrailingTap,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
         color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.borderColor),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(9),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: context.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: context.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: context.primary, size: 18),
+            child: Icon(icon, color: context.primary, size: 19),
           ),
+
           const SizedBox(width: 12),
+
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: context.textPrimary,
-                    fontSize: 14,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle,
-                    style: TextStyle(color: context.textTertiary, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.textTertiary,
+                      fontSize: 11.5,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
-          if (trailing != null)
+
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: onTrailingTap,
               child: Container(
-                padding: const EdgeInsets.all(6),
-                child: Icon(trailing, color: context.textPrimary, size: 20),
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: context.surfaceVariantColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(trailing, color: context.textSecondary, size: 18),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -610,56 +713,64 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   Widget _buildCreatorActions(BuildContext context, PlanEntity plan) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              await AppRoutes.push(context, CreatePlanPage(existingPlan: plan));
-              ref
-                  .read(planViewModelProvider.notifier)
-                  .getPlanById(widget.planId);
-            },
-            icon: Icon(Iconsax.edit, color: context.primary, size: 18),
-            label: Text(
-              'Edit',
-              style: TextStyle(
-                color: context.primary,
-                fontWeight: FontWeight.w600,
+    return SizedBox(
+      height: 52,
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await AppRoutes.push(
+                  context,
+                  CreatePlanPage(existingPlan: plan),
+                );
+
+                ref
+                    .read(planViewModelProvider.notifier)
+                    .getPlanById(widget.planId);
+              },
+              icon: Icon(Iconsax.edit, color: context.primary, size: 18),
+              label: Text(
+                'Edit',
+                style: TextStyle(
+                  color: context.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: context.primary),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: context.borderColor),
+                backgroundColor: context.surfaceColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => _handleDelete(context),
-            icon: const Icon(Iconsax.trash, color: Colors.white, size: 18),
-            label: const Text(
-              'Delete',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () => _handleDelete(context),
+              icon: const Icon(Iconsax.trash, color: Colors.white, size: 18),
+              label: const Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
-              elevation: 0,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -670,12 +781,12 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     return SizedBox(
       width: double.infinity,
+      height: 52,
       child: ElevatedButton(
         onPressed: isMember ? _handleLeave : (isFull ? null : _handleJoin),
         style: ElevatedButton.styleFrom(
           backgroundColor: isMember ? context.surfaceColor : context.primary,
-          disabledBackgroundColor: context.surfaceColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          disabledBackgroundColor: context.surfaceVariantColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -690,7 +801,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
             color: isMember
                 ? AppColors.error
                 : (isFull ? context.textTertiary : Colors.white),
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
         ),

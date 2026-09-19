@@ -28,6 +28,7 @@ class UserSessionService {
   static const String _keyUserPhoneNumber = "user_phone_number";
   static const String _keyUserProfilePicture = 'user_profile_picture';
   static const String _keyToken = "token";
+  static const String _keyIsAdmin = "is_admin";
 
   //store user session data
   Future<void> saveUserSession({
@@ -39,12 +40,14 @@ class UserSessionService {
     required String? phoneNumber,
     required String token,
     required bool isOnboarded,
+    required bool isAdmin,
     String? profilePicture,
   }) async {
     await _prefs.setBool(_keyIsLoggedIn, true);
     await _prefs.setString(_keyUserId, userId);
     await _prefs.setString(_keyUserEmail, email);
     await _prefs.setBool(_keyIsOnboarded, isOnboarded);
+    await _prefs.setBool(_keyIsAdmin, isAdmin);
 
     if (username != null) {
       await _prefs.setString(_keyUsername, username);
@@ -84,6 +87,10 @@ class UserSessionService {
     return _prefs.getBool(_keyIsOnboarded) ?? false;
   }
 
+  bool isAdmin() {
+    return _prefs.getBool(_keyIsAdmin) ?? false;
+  }
+
   String? getUserFirstName() {
     return _prefs.getString(_keyUserFirstName);
   }
@@ -115,6 +122,7 @@ class UserSessionService {
     await _prefs.remove(_keyUsername);
     await _prefs.remove(_keyUserEmail);
     await _prefs.remove(_keyUserProfilePicture);
+    await _prefs.remove(_keyIsAdmin);
     await _prefs.remove(_keyToken);
   }
 }
