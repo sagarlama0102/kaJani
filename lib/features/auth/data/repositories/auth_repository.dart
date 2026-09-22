@@ -192,7 +192,6 @@ class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-
   @override
   Future<Either<Failure, AuthEntity>> completeProfile({
     required String firstName,
@@ -255,28 +254,55 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   // ─── Delete Account ─────────────────────────────────────────────
-@override
-Future<Either<Failure, void>> deleteAccount() async {
-  if (await _networkInfo.isConnected) {
-    try {
-      await _remoteDatasource.deleteAccount();
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    if (await _networkInfo.isConnected) {
+      try {
+        await _remoteDatasource.deleteAccount();
 
-      // account is gone — clear the Hive cache too
-      await _localDatasource.logout();
+        // account is gone — clear the Hive cache too
+        await _localDatasource.logout();
 
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(
-        ApiFailure(
-          message: e.response?.data['message'] ?? 'Failed to delete account',
-          statusCode: e.response?.statusCode,
-        ),
-      );
-    } catch (e) {
-      return Left(ApiFailure(message: e.toString()));
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? 'Failed to delete account',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
     }
-  } else {
-    return const Left(NetworkFailure(message: 'No internet connection'));
   }
-}
+
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (await _networkInfo.isConnected) {
+      try {
+        await _remoteDatasource.changePassword(
+          currentPassword: currentPassword,
+          newPassword: newPassword,
+        );
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? 'Failed to change password',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
 }

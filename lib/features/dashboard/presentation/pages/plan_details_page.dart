@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:kajani/core/widgets/error_state.dart';
 import 'package:kajani/core/widgets/skeleton_box.dart';
+import 'package:kajani/features/report/presentation/pages/event_member_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
@@ -522,67 +523,79 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     final displayCount = members.length > 4 ? 4 : members.length;
     final total = plan.members?.length ?? members.length;
 
-    return Row(
-      children: [
-        if (displayCount > 0)
-          SizedBox(
-            width: 32.0 + (displayCount - 1) * 20,
-            height: 32,
-            child: Stack(
-              children: List.generate(displayCount, (index) {
-                final member = members[index];
-
-                return Positioned(
-                  left: index * 18.0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: context.surfaceColor, width: 2),
+    return GestureDetector(
+      onTap: (){
+        if (plan.memberDetails != null && plan.memberDetails!.isNotEmpty) {
+      AppRoutes.push(context, EventMembersPage(
+        members: plan.memberDetails!,
+        creatorId: plan.creatorId ?? '',
+      ),
+      
+      );
+    }
+      },
+      child: Row(
+        children: [
+          if (displayCount > 0)
+            SizedBox(
+              width: 32.0 + (displayCount - 1) * 20,
+              height: 32,
+              child: Stack(
+                children: List.generate(displayCount, (index) {
+                  final member = members[index];
+      
+                  return Positioned(
+                    left: index * 18.0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: context.surfaceColor, width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: context.primary,
+                        backgroundImage: member.profilePicture != null
+                            ? NetworkImage(
+                                member.profilePicture!.startsWith('http')
+                                    ? member.profilePicture!
+                                    : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
+                              )
+                            : null,
+                        child: member.profilePicture == null
+                            ? Text(
+                                member.firstName.isNotEmpty
+                                    ? member.firstName[0].toUpperCase()
+                                    : '?',
+                                style:  TextStyle(
+                                  color: context.textPrimary,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
-                    child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor: context.primary,
-                      backgroundImage: member.profilePicture != null
-                          ? NetworkImage(
-                              member.profilePicture!.startsWith('http')
-                                  ? member.profilePicture!
-                                  : '${ApiEndpoints.baseUrlOnly}${member.profilePicture}',
-                            )
-                          : null,
-                      child: member.profilePicture == null
-                          ? Text(
-                              member.firstName.isNotEmpty
-                                  ? member.firstName[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : null,
-                    ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
+            ),
+      
+          if (displayCount > 0) const SizedBox(width: 12),
+      
+          Expanded(
+            child: Text(
+              plan.maxMembers != null
+                  ? '$total / ${plan.maxMembers} going'
+                  : '$total going',
+              style: TextStyle(
+                color: context.textPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-
-        if (displayCount > 0) const SizedBox(width: 12),
-
-        Expanded(
-          child: Text(
-            plan.maxMembers != null
-                ? '$total / ${plan.maxMembers} going'
-                : '$total going',
-            style: TextStyle(
-              color: context.textPrimary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kajani/features/auth/domain/usecases/change_password_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/delete_account_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:kajani/features/auth/domain/usecases/google_signin_usecase.dart';
@@ -24,6 +25,7 @@ class AuthViewModel extends Notifier<AuthState> {
   late final GoogleSignInUsecase _googleSignInUsecase;
   late final UpdateProfileUsecase _updateProfileUsecase;
   late final DeleteAccountUsecase _deleteAccountUsecase;
+  late final ChangePasswordUsecase _changePasswordUsecase;
 
   @override
   AuthState build() {
@@ -35,6 +37,7 @@ class AuthViewModel extends Notifier<AuthState> {
     _googleSignInUsecase = ref.read(googleSignInUsecaseProvider);
     _updateProfileUsecase = ref.read(updateProfileUsecaseProvider);
     _deleteAccountUsecase = ref.read(deleteAccountUsecaseProvider);
+    _changePasswordUsecase = ref.read(changePasswordUsecaseProvider);
     return AuthState();
   }
 
@@ -179,22 +182,46 @@ class AuthViewModel extends Notifier<AuthState> {
       (user) => state = state.copyWith(status: AuthStatus.profileUpdated),
     );
   }
+
   // ─── Delete Account ─────────────────────────────────────────────
-Future<void> deleteAccount() async {
-  state = state.copyWith(status: AuthStatus.loading);
+  Future<void> deleteAccount() async {
+    state = state.copyWith(status: AuthStatus.loading);
 
-  final result = await _deleteAccountUsecase();
+    final result = await _deleteAccountUsecase();
 
-  result.fold(
-    (failure) => state = state.copyWith(
-      status: AuthStatus.error,
-      errorMessage: failure.message,
-    ),
-    (_) => state = state.copyWith(
-      status: AuthStatus.unauthenticated, // account gone → treat as logged out
-    ),
-  );
-}
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (_) => state = state.copyWith(
+        status:
+            AuthStatus.unauthenticated, // account gone → treat as logged out
+      ),
+    );
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(status: AuthStatus.loading);
+
+    final result = await _changePasswordUsecase(
+      ChangePasswordParams(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: failure.message,
+      ),
+      (_) => state = state.copyWith(status: AuthStatus.passwordChanged),
+    );
+  }
 
   // ─── Reset Error ───────────────────────────────────────────────
   void resetError() {

@@ -198,10 +198,9 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
   @override
   Future<UserApiModel> getCurrentUser() async {
     final response = await _apiClient.get(ApiEndpoints.whoAmI);
-    
+
     if (response.data['success'] == true) {
       final userJson = response.data['data']['user'] as Map<String, dynamic>;
-     
 
       //  refresh the saved session with the latest backend truth
       final currentToken = _userSessionService.getToken() ?? '';
@@ -213,7 +212,8 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: currentToken,
-        isOnboarded: userJson['isOnboarded'] ?? _userSessionService.isOnboarded(),
+        isOnboarded:
+            userJson['isOnboarded'] ?? _userSessionService.isOnboarded(),
         isAdmin: userJson['isAdmin'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
@@ -255,7 +255,6 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
     if (response.data['success'] == true) {
       final userJson = response.data['data']['user'] as Map<String, dynamic>;
-      
 
       // Re-save session with the updated fields, preserving everything else
       final currentToken = _userSessionService.getToken() ?? '';
@@ -267,12 +266,11 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: currentToken,
-        isOnboarded:
-             _userSessionService.isOnboarded(),
+        isOnboarded: _userSessionService.isOnboarded(),
         isAdmin: _userSessionService.isAdmin(),
         profilePicture: userJson['profilePicture'],
       );
-      
+
       return UserApiModel.fromJson(userJson);
     }
     throw Exception(response.data['message'] ?? 'Failed to update profile');
@@ -306,7 +304,8 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
         lastName: userJson['lastName'],
         phoneNumber: userJson['phoneNumber'],
         token: token,
-        isOnboarded: userJson['isOnboarded'] ?? _userSessionService.isOnboarded(), 
+        isOnboarded:
+            userJson['isOnboarded'] ?? _userSessionService.isOnboarded(),
         isAdmin: userJson['isAdmin'] ?? false,
         profilePicture: userJson['profilePicture'],
       );
@@ -323,17 +322,32 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
     throw Exception(response.data['message'] ?? 'Failed to complete profile');
   }
 
+  @override
+  Future<void> deleteAccount() async {
+    final response = await _apiClient.delete(ApiEndpoints.deleteAccount);
+
+    if (response.data['success'] == true) {
+      // account is gone — wipe everything locally
+      await _tokenService.deleteToken();
+      await _userSessionService.clearUserSession();
+      return;
+    }
+    throw Exception(response.data['message'] ?? 'Failed to delete account');
+  }
 
   @override
-Future<void> deleteAccount() async {
-  final response = await _apiClient.delete(ApiEndpoints.deleteAccount);
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final response = await _apiClient.post(
+      ApiEndpoints.changePassword,
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+    );
 
-  if (response.data['success'] == true) {
-    // account is gone — wipe everything locally
-    await _tokenService.deleteToken();
-    await _userSessionService.clearUserSession();
-    return;
+    if (response.data['success'] != true) {
+      throw Exception(response.data['message'] ?? 'Failed to change password');
+    }
+    // success — nothing to save locally; password isn't stored client-side
   }
-  throw Exception(response.data['message'] ?? 'Failed to delete account');
-}
 }

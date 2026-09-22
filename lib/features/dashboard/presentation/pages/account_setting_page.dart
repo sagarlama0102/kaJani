@@ -6,6 +6,7 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/features/auth/presentation/pages/change_password_page.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
@@ -13,14 +14,22 @@ import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dar
 class AccountSettingsPage extends ConsumerWidget {
   const AccountSettingsPage({super.key});
 
-  Future<void> _showDeleteAccountDialog(BuildContext context, WidgetRef ref) async {
+  Future<void> _showDeleteAccountDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete Account',
-            style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Delete Account',
+          style: TextStyle(
+            color: context.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: Text(
           'This will permanently delete your account and remove your personal '
           'information. This action cannot be undone.',
@@ -29,12 +38,17 @@ class AccountSettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('Cancel', style: TextStyle(color: context.textSecondary)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: context.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Delete', style: TextStyle(color: Colors.white)),
@@ -75,7 +89,10 @@ class AccountSettingsPage extends ConsumerWidget {
           icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
           onPressed: () => AppRoutes.pop(context),
         ),
-        title: Text('Account Settings', style: TextStyle(color: context.textPrimary)),
+        title: Text(
+          'Account Settings',
+          style: TextStyle(color: context.textPrimary),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -95,9 +112,19 @@ class AccountSettingsPage extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    _infoRow(context, Iconsax.user, 'Name', fullName.isNotEmpty ? fullName : '—'),
+                    _infoRow(
+                      context,
+                      Iconsax.user,
+                      'Name',
+                      fullName.isNotEmpty ? fullName : '—',
+                    ),
                     _rowDivider(context),
-                    _infoRow(context, Iconsax.tag_user, 'Username', '@$username'),
+                    _infoRow(
+                      context,
+                      Iconsax.tag_user,
+                      'Username',
+                      '@$username',
+                    ),
                     _rowDivider(context),
                     _infoRow(context, Iconsax.sms, 'Email', email),
                   ],
@@ -105,6 +132,53 @@ class AccountSettingsPage extends ConsumerWidget {
               ),
 
               const SizedBox(height: 32),
+
+              _sectionLabel(context, 'SECURITY'),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () =>
+                    AppRoutes.push(context, const ChangePasswordPage()),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: context.surfaceColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: context.borderColor),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: context.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Iconsax.lock,
+                          color: context.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          'Change Password',
+                          style: TextStyle(
+                            color: context.textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Iconsax.arrow_right_3,
+                        color: context.textTertiary,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
               // ─── Danger Zone ─────────────────────────────
               _sectionLabel(context, 'DANGER ZONE'),
@@ -117,7 +191,9 @@ class AccountSettingsPage extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -127,7 +203,11 @@ class AccountSettingsPage extends ConsumerWidget {
                           color: AppColors.error.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Iconsax.trash, color: AppColors.error, size: 20),
+                        child: Icon(
+                          Iconsax.trash,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -145,7 +225,10 @@ class AccountSettingsPage extends ConsumerWidget {
                             const SizedBox(height: 2),
                             Text(
                               'Permanently delete your account and data',
-                              style: TextStyle(color: context.textTertiary, fontSize: 12),
+                              style: TextStyle(
+                                color: context.textTertiary,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -173,14 +256,22 @@ class AccountSettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _infoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _infoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
           Icon(icon, color: context.textSecondary, size: 18),
           const SizedBox(width: 12),
-          Text(label, style: TextStyle(color: context.textSecondary, fontSize: 14)),
+          Text(
+            label,
+            style: TextStyle(color: context.textSecondary, fontSize: 14),
+          ),
           const Spacer(),
           Flexible(
             child: Text(

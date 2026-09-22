@@ -23,4 +23,9 @@ abstract interface class IAuthRepository {
   });
 
   Future<Either<Failure, void>> deleteAccount();
+
+  Future<Either<Failure, void>> changePassword({
+  required String currentPassword,
+  required String newPassword,
+});
 }

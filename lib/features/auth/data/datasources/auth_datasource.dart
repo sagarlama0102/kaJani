@@ -47,4 +47,9 @@ abstract interface class IAuthRemoteDataSource {
   });
 
   Future<void> deleteAccount();
+
+  Future<void> changePassword({
+  required String currentPassword,
+  required String newPassword,
+});
 }

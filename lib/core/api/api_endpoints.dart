@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrlOnly = 'http://192.168.101.8:4000';
+  static const String baseUrlOnly = 'http://192.168.101.14:4000';
 
   static const String baseUrl = '$baseUrlOnly/api/';
 
@@ -27,4 +27,7 @@ class ApiEndpoints {
   static const String unreadCount = 'notifications/unread-count';
   static const String markAllRead = 'notifications/mark-all-read';
   static const String clearAllNotifications = 'notifications/clear-all';
+  static const String changePassword = 'auth/change-password';
+
+  static const String reports = 'reports';
 }

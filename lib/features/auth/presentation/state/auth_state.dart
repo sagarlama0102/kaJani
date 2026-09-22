@@ -9,6 +9,7 @@ enum AuthStatus {
   unauthenticated,
   registered,
   profileUpdated,
+  passwordChanged,
   error,
 }
 
