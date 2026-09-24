@@ -258,7 +258,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               children: [
                 plan.coverImage != null
                     ? Image.network(
-                        '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                      plan.coverImage!.startsWith('http')
+                      ? plan.coverImage!
+                      :  '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                         width: double.infinity,
                         height: 190,
                         fit: BoxFit.cover,

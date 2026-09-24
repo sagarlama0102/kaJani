@@ -380,7 +380,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: SizedBox.expand(
                   child: plan.coverImage != null
                       ? Image.network(
-                          '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                        plan.coverImage!.startsWith('http')
+                        ? plan.coverImage!
+                          : '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _thumbFill(),
                         )

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/core/widgets/error_state.dart';
 import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/report/presentation/pages/event_member_page.dart';
@@ -247,7 +248,9 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                         width: double.infinity,
                         child: plan.coverImage != null
                             ? Image.network(
-                                '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                              plan.coverImage!.startsWith('http')
+                              ? plan.coverImage!
+                                :'${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => Container(
                                   color: context.surfaceColor,
@@ -300,13 +303,12 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _circleIconButton(
-                                context: context,
+                              CircleIconButton(
                                 icon: Iconsax.arrow_left_2,
                                 onTap: () => AppRoutes.pop(context),
                               ),
-                              _circleIconButton(
-                                context: context,
+                              CircleIconButton(
+                                
                                 icon: isSaved
                                     ? Iconsax.heart_add
                                     : Iconsax.heart,
@@ -523,15 +525,16 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     final total = plan.members?.length ?? members.length;
 
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         if (plan.memberDetails != null && plan.memberDetails!.isNotEmpty) {
-      AppRoutes.push(context, EventMembersPage(
-        members: plan.memberDetails!,
-        creatorId: plan.creatorId ?? '',
-      ),
-      
-      );
-    }
+          AppRoutes.push(
+            context,
+            EventMembersPage(
+              members: plan.memberDetails!,
+              creatorId: plan.creatorId ?? '',
+            ),
+          );
+        }
       },
       child: Row(
         children: [
@@ -542,13 +545,16 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
               child: Stack(
                 children: List.generate(displayCount, (index) {
                   final member = members[index];
-      
+
                   return Positioned(
                     left: index * 18.0,
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: context.surfaceColor, width: 2),
+                        border: Border.all(
+                          color: context.surfaceColor,
+                          width: 2,
+                        ),
                       ),
                       child: CircleAvatar(
                         radius: 14,
@@ -565,7 +571,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                                 member.firstName.isNotEmpty
                                     ? member.firstName[0].toUpperCase()
                                     : '?',
-                                style:  TextStyle(
+                                style: TextStyle(
                                   color: context.textPrimary,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -578,9 +584,9 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
                 }),
               ),
             ),
-      
+
           if (displayCount > 0) const SizedBox(width: 12),
-      
+
           Expanded(
             child: Text(
               plan.maxMembers != null
@@ -599,26 +605,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
   }
 
   // ─── Reusable widgets ───────────────────────────────────────────
-  Widget _circleIconButton({
-    required BuildContext context,
-    required IconData icon,
-    required VoidCallback onTap,
-    Color iconColor = Colors.white,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.42),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-        ),
-        child: Icon(icon, color: iconColor, size: 20),
-      ),
-    );
-  }
 
   Widget _infoCard({
     required IconData icon,
@@ -699,30 +685,30 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
     );
   }
 
-  Widget _outlinedButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, color: context.primary, size: 18),
-        label: Text(
-          label,
-          style: TextStyle(color: context.primary, fontWeight: FontWeight.w600),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: context.primary),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _outlinedButton({
+  //   required IconData icon,
+  //   required String label,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     child: OutlinedButton.icon(
+  //       onPressed: onTap,
+  //       icon: Icon(icon, color: context.primary, size: 18),
+  //       label: Text(
+  //         label,
+  //         style: TextStyle(color: context.primary, fontWeight: FontWeight.w600),
+  //       ),
+  //       style: OutlinedButton.styleFrom(
+  //         side: BorderSide(color: context.primary),
+  //         padding: const EdgeInsets.symmetric(vertical: 14),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(14),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildCreatorActions(BuildContext context, PlanEntity plan) {
     return SizedBox(

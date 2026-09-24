@@ -246,7 +246,9 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
               borderRadius: BorderRadius.circular(10),
               child: notification.planCoverImage != null
                   ? Image.network(
-                      '${ApiEndpoints.baseUrlOnly}${notification.planCoverImage}',
+                    notification.planCoverImage!.startsWith('http')
+                    ? notification.planCoverImage!
+                      :'${ApiEndpoints.baseUrlOnly}${notification.planCoverImage}',
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,

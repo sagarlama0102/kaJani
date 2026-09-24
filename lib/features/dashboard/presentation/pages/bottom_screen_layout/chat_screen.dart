@@ -149,7 +149,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 borderRadius: BorderRadius.circular(28),
                 child: chat.planCoverImage != null
                     ? Image.network(
-                        '${ApiEndpoints.baseUrlOnly}${chat.planCoverImage}',
+                      chat.planCoverImage!.startsWith('http')
+                      ? chat.planCoverImage!
+                        :'${ApiEndpoints.baseUrlOnly}${chat.planCoverImage}',
                         width: 52,
                         height: 52,
                         fit: BoxFit.cover,

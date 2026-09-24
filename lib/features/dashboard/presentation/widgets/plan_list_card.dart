@@ -42,7 +42,9 @@ class PlanListCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
               child: plan.coverImage != null
                   ? Image.network(
-                      '${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
+                    plan.coverImage!.startsWith('http')
+                    ? plan.coverImage!
+                      :'${ApiEndpoints.baseUrlOnly}${plan.coverImage}',
                       width: 72,
                       height: 72,
                       fit: BoxFit.cover,
