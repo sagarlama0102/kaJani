@@ -71,10 +71,8 @@ class PlanViewModel extends Notifier<PlanState> {
         status: PlanStatus.error,
         errorMessage: failure.message,
       ),
-      (plans) => state = state.copyWith(
-        status: PlanStatus.loaded,
-        plans: plans,
-      ),
+      (plans) =>
+          state = state.copyWith(status: PlanStatus.loaded, plans: plans),
     );
   }
 
@@ -82,19 +80,15 @@ class PlanViewModel extends Notifier<PlanState> {
   Future<void> getPlanById(String planId) async {
     state = state.copyWith(status: PlanStatus.loading);
 
-    final result = await _getPlanByIdUsecase(
-      GetPlanByIdParams(planId: planId),
-    );
+    final result = await _getPlanByIdUsecase(GetPlanByIdParams(planId: planId));
 
     result.fold(
       (failure) => state = state.copyWith(
         status: PlanStatus.error,
         errorMessage: failure.message,
       ),
-      (plan) => state = state.copyWith(
-        status: PlanStatus.loaded,
-        selectedPlan: plan,
-      ),
+      (plan) =>
+          state = state.copyWith(status: PlanStatus.loaded, selectedPlan: plan),
     );
   }
 
@@ -174,9 +168,7 @@ class PlanViewModel extends Notifier<PlanState> {
   Future<void> deletePlan(String planId) async {
     state = state.copyWith(status: PlanStatus.loading);
 
-    final result = await _deletePlanUsecase(
-      DeletePlanParams(planId: planId),
-    );
+    final result = await _deletePlanUsecase(DeletePlanParams(planId: planId));
 
     result.fold(
       (failure) => state = state.copyWith(
@@ -202,10 +194,8 @@ class PlanViewModel extends Notifier<PlanState> {
         status: PlanStatus.error,
         errorMessage: failure.message,
       ),
-      (plans) => state = state.copyWith(
-        status: PlanStatus.loaded,
-        myPlans: plans,
-      ),
+      (plans) =>
+          state = state.copyWith(status: PlanStatus.loaded, myPlans: plans),
     );
   }
 
@@ -220,10 +210,8 @@ class PlanViewModel extends Notifier<PlanState> {
         status: PlanStatus.error,
         errorMessage: failure.message,
       ),
-      (plans) => state = state.copyWith(
-        status: PlanStatus.loaded,
-        joinedPlans: plans,
-      ),
+      (plans) =>
+          state = state.copyWith(status: PlanStatus.loaded, joinedPlans: plans),
     );
   }
 
@@ -238,10 +226,8 @@ class PlanViewModel extends Notifier<PlanState> {
         status: PlanStatus.error,
         errorMessage: failure.message,
       ),
-      (plans) => state = state.copyWith(
-        status: PlanStatus.loaded,
-        savedPlans: plans,
-      ),
+      (plans) =>
+          state = state.copyWith(status: PlanStatus.loaded, savedPlans: plans),
     );
   }
 
@@ -249,9 +235,7 @@ class PlanViewModel extends Notifier<PlanState> {
   Future<void> joinPlan(String planId) async {
     state = state.copyWith(status: PlanStatus.loading);
 
-    final result = await _joinPlanUsecase(
-      JoinPlanParams(planId: planId),
-    );
+    final result = await _joinPlanUsecase(JoinPlanParams(planId: planId));
 
     result.fold(
       (failure) => state = state.copyWith(
@@ -270,9 +254,7 @@ class PlanViewModel extends Notifier<PlanState> {
   Future<void> leavePlan(String planId) async {
     state = state.copyWith(status: PlanStatus.loading);
 
-    final result = await _leavePlanUsecase(
-      LeavePlanParams(planId: planId),
-    );
+    final result = await _leavePlanUsecase(LeavePlanParams(planId: planId));
 
     result.fold(
       (failure) => state = state.copyWith(
@@ -291,7 +273,6 @@ class PlanViewModel extends Notifier<PlanState> {
 
   // ─── Toggle Save Plan ────────────────────────────────────────────
 Future<void> toggleSavePlan(String planId, {String? currentUserId}) async {
-  state = state.copyWith(status: PlanStatus.loading);
 
   final result = await _toggleSavePlanUsecase(
     ToggleSavePlanParams(planId: planId),
@@ -303,47 +284,55 @@ Future<void> toggleSavePlan(String planId, {String? currentUserId}) async {
       errorMessage: failure.message,
     ),
     (isSaved) {
-      // update plans list locally
-      List<PlanEntity> updateList(List<PlanEntity> plans) {
-        return plans.map((p) {
-          if (p.planId == planId && currentUserId != null) {
-            final currentSavedBy = List<String>.from(p.savedBy ?? []);
-            if (isSaved) {
-              if (!currentSavedBy.contains(currentUserId)) {
-                currentSavedBy.add(currentUserId);
-              }
-            } else {
-              currentSavedBy.remove(currentUserId);
+      PlanEntity applySave(PlanEntity p) {
+        final currentSavedBy = List<String>.from(p.savedBy ?? []);
+        if (currentUserId != null) {
+          if (isSaved) {
+            if (!currentSavedBy.contains(currentUserId)) {
+              currentSavedBy.add(currentUserId);
             }
-            return PlanEntity(
-              planId: p.planId,
-              title: p.title,
-              description: p.description,
-              category: p.category,
-              coverImage: p.coverImage,
-              location: p.location,
-              date: p.date,
-              time: p.time,
-              endTime: p.endTime,
-              endDate: p.endDate,
-              status: p.status,
-              isPublic: p.isPublic,
-              maxMembers: p.maxMembers,
-              creatorId: p.creatorId,
-              members: p.members,
-              memberDetails: p.memberDetails,
-              savedBy: currentSavedBy,
-            );
+          } else {
+            currentSavedBy.remove(currentUserId);
           }
-          return p;
-        }).toList();
+        }
+        return PlanEntity(
+          planId: p.planId,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          coverImage: p.coverImage,
+          location: p.location,
+          date: p.date,
+          time: p.time,
+          endTime: p.endTime,
+          endDate: p.endDate,
+          status: p.status,
+          isPublic: p.isPublic,
+          maxMembers: p.maxMembers,
+          creatorId: p.creatorId,
+          members: p.members,
+          memberDetails: p.memberDetails,
+          savedBy: currentSavedBy,
+        );
       }
+
+      List<PlanEntity> updateList(List<PlanEntity> plans) {
+        return plans.map((p) => p.planId == planId ? applySave(p) : p).toList();
+      }
+
+      
+      final currentSelected = state.selectedPlan;
+      final updatedSelected =
+          (currentSelected != null && currentSelected.planId == planId)
+              ? applySave(currentSelected)
+              : currentSelected;
 
       state = state.copyWith(
         status: PlanStatus.saved,
         isSaved: isSaved,
         plans: updateList(state.plans),
         savedPlans: updateList(state.savedPlans),
+        selectedPlan: updatedSelected, 
       );
     },
   );
@@ -351,9 +340,6 @@ Future<void> toggleSavePlan(String planId, {String? currentUserId}) async {
 
   // ─── Reset Error ─────────────────────────────────────────────────
   void resetError() {
-    state = state.copyWith(
-      status: PlanStatus.initial,
-      errorMessage: null,
-    );
+    state = state.copyWith(status: PlanStatus.initial, errorMessage: null);
   }
 }

@@ -62,6 +62,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: context.surfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Clear all notifications?',
@@ -74,11 +75,12 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child:  Text('Cancel', style: TextStyle(color: context.textSecondary)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              ref.read(notificationViewModelProvider.notifier).clearAllNotifications();
             },
             child: Text('Clear All', style: TextStyle(color: AppColors.error)),
           ),
@@ -92,7 +94,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     final notificationState = ref.watch(notificationViewModelProvider);
 
     return Scaffold(
-      backgroundColor: context.surfaceColor,
+      backgroundColor: context.backgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

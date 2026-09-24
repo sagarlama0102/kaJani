@@ -145,7 +145,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white
-                                : context.textSecondary, // 👈 fixed
+                                : context.textSecondary,
                             fontSize: 13,
                             fontWeight: isSelected
                                 ? FontWeight.w600
@@ -225,36 +225,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
             // ─── Plan Cards List ──────────────────────────────────────
             Expanded(
-              child:
-                  (planState.status == PlanStatus.loading ||
-                      planState.status == PlanStatus.initial)
-                  ? _buildPlansSkeleton()
-                  : planState.status == PlanStatus.error
-                  ? ErrorStateView(
-                    message: planState.errorMessage ?? 'Could not load events. Check your connection and try again.',
-                    onRetry: _fetchPlans,
-                  )
-                  : plans.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No events found',
-                        style: TextStyle(
-                          color: context.textSecondary,
-                          fontSize: 14,
-                        ),
-                       
-                      ),
-                    )
-                  : RefreshIndicator(
-                      color: context.primary,
-                      onRefresh: () async => _fetchPlans(),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        itemCount: plans.length,
-                        itemBuilder: (context, index) =>
-                            _buildPlanCard(plans[index], currentUserId),
-                      ),
-                    ),
+              child: RefreshIndicator(
+                color: context.primary,
+                onRefresh: () async => _fetchPlans(),
+                child: _buildPlanContent(planState, plans, currentUserId),
+              ),
             ),
           ],
         ),
@@ -275,7 +250,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: context.borderColor),
         ),
-        clipBehavior: Clip.antiAlias, // 👈 so image corners match card
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -503,6 +478,59 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPlanContent(
+    PlanState planState,
+    List<PlanEntity> plans,
+    String? currentUserId,
+  ) {
+    // Loading → skeleton (already scrollable if it's a ListView; wrap if not)
+    if (planState.status == PlanStatus.loading ||
+        planState.status == PlanStatus.initial) {
+      return _buildPlansSkeleton();
+    }
+
+    // Error → scrollable so pull-to-refresh works
+    if (planState.status == PlanStatus.error) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 80),
+          ErrorStateView(
+            message:
+                planState.errorMessage ??
+                'Could not load events. Check your connection and try again.',
+            onRetry: _fetchPlans,
+          ),
+        ],
+      );
+    }
+
+    // Empty → scrollable so pull-to-refresh works
+    if (plans.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 80),
+          Center(
+            child: Text(
+              'No events found',
+              style: TextStyle(color: context.textSecondary, fontSize: 14),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Has data → the list
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(), // 👈 add this
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: plans.length,
+      itemBuilder: (context, index) =>
+          _buildPlanCard(plans[index], currentUserId),
     );
   }
 

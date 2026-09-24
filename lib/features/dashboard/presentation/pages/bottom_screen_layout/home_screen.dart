@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
+import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/widgets/empty_state.dart';
@@ -50,172 +51,185 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ..sort(
             (a, b) => '${a.date} ${a.time}'.compareTo('${b.date} ${b.time}'),
           );
-    final activeEvents = planState.plans
-    .where((p) => p.status == 'upcoming' || p.status == 'ongoing')
-    .toList()
-  ..sort((a, b) => '${a.date} ${a.time}'.compareTo('${b.date} ${b.time}'));
+    final activeEvents =
+        planState.plans
+            .where((p) => p.status == 'upcoming' || p.status == 'ongoing')
+            .toList()
+          ..sort(
+            (a, b) => '${a.date} ${a.time}'.compareTo('${b.date} ${b.time}'),
+          );
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildHeader(firstName, username),
-              const SizedBox(height: 28),
-              if (planState.status == PlanStatus.error)
-                Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: ErrorStateView(
-                    message:
-                        planState.errorMessage ??
-                        'Could not load events. Check your connection and try again',
-                    onRetry: () => ref
-                        .read(planViewModelProvider.notifier)
-                        .getJoinedPlans(),
-                  ),
-                )
-              else ...[
-                _buildSectionHeader(
-                  'Your Groups',
-                  allJoined.length,
-                  onSeeAll: () => showPlansBottomSheet(
-                    context,
-                    title: 'Your Groups',
-                    plans: allJoined,
-                    emptyImagePath: 'assets/images/teamwork.png',
-                    emptyTitle: 'No groups yet',
-                    emptyMessage: 'Join an event to connect with people',
-                  ),
-                ),
-                const SizedBox(height: 14),
-                if (planState.status == PlanStatus.loading ||
-                    planState.status == PlanStatus.initial)
-                  _buildGroupsSkeleton()
-                else if (allJoined.isEmpty)
-                  const SizedBox(
-                    width: double.infinity,
-                    child: EmptyState(
-                      imagePath: 'assets/images/teamwork.png',
-                      title: "No groups yet",
-                      message: "Join an event to connect with people",
-                    ),
-                  )
-                else
-                  _buildGroupsGrid(allJoined),
-                if (userSession.isAdmin()) ...[
-                  const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () =>
-                        AppRoutes.push(context, const CreatePlanPage()),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 18,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            context.primary,
-                            context.primary.withValues(alpha: 0.8),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: context.primary.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color:context.textSecondary,
-                              shape: BoxShape.circle,
-                            ),
-                            child:  Icon(
-                              Iconsax.add,
-                              color: context.textPrimary,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Create an Event',
-                                  style: TextStyle(
-                                    color: context.textPrimary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'Add a new activity for people to join',
-                                  style: TextStyle(
-                                    color: context.textSecondary,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                           Icon(
-                            Iconsax.arrow_right_3,
-                            color: context.textPrimary,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-
+        child: RefreshIndicator(
+          color: AppColors.primary,
+          onRefresh: () async {
+            await Future.wait([
+              ref.read(planViewModelProvider.notifier).getJoinedPlans(),
+              ref.read(planViewModelProvider.notifier).getAllPlans(),
+            ]);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _buildHeader(firstName, username),
                 const SizedBox(height: 28),
-                _buildSectionHeader(
-                  'Events',
-                  activeEvents.length,
-                  onSeeAll: () => showPlansBottomSheet(
-                    context,
-                    title: 'Active Events',
-                    plans: upcomingJoined,
-                    emptyImagePath: 'assets/images/calander.png',
-                    emptyTitle: 'Noting coming up',
-                    emptyMessage:
-                        'Events you can join will show up here so you never miss out',
-                  ),
-                ),
-                const SizedBox(height: 14),
-                if (planState.status == PlanStatus.loading ||
-                    planState.status == PlanStatus.initial)
-                  _buildUpcomingSkeleton() //  new branch — this section had no loading state before
-                else if (activeEvents.isEmpty)
-                  const EmptyState(
-                    imagePath: 'assets/images/calander.png',
-                    title: "Nothing coming up",
-                    message:
-                        "Events you can join will show up here so you never miss out",
+                if (planState.status == PlanStatus.error)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: ErrorStateView(
+                      message:
+                          planState.errorMessage ??
+                          'Could not load events. Check your connection and try again',
+                      onRetry: () => ref
+                          .read(planViewModelProvider.notifier)
+                          .getJoinedPlans(),
+                    ),
                   )
-                else
-                  ...activeEvents
-                      .take(3)
-                      .map((plan) => PlanListCard(plan: plan)),
-                const SizedBox(height: 20),
+                else ...[
+                  _buildSectionHeader(
+                    'Your Groups',
+                    allJoined.length,
+                    onSeeAll: () => showPlansBottomSheet(
+                      context,
+                      title: 'Your Groups',
+                      plans: allJoined,
+                      emptyImagePath: 'assets/images/teamwork.png',
+                      emptyTitle: 'No groups yet',
+                      emptyMessage: 'Join an event to connect with people',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  if (planState.status == PlanStatus.loading ||
+                      planState.status == PlanStatus.initial)
+                    _buildGroupsSkeleton()
+                  else if (allJoined.isEmpty)
+                    const SizedBox(
+                      width: double.infinity,
+                      child: EmptyState(
+                        imagePath: 'assets/images/teamwork.png',
+                        title: "No groups yet",
+                        message: "Join an event to connect with people",
+                      ),
+                    )
+                  else
+                    _buildGroupsGrid(allJoined),
+                  if (userSession.isAdmin()) ...[
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () =>
+                          AppRoutes.push(context, const CreatePlanPage()),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 18,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              context.primary,
+                              context.primary.withValues(alpha: 0.8),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: context.primary.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Iconsax.add,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Create an Event',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Add a new activity for people to join',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Iconsax.arrow_right_3,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 28),
+                  _buildSectionHeader(
+                    'Events',
+                    activeEvents.length,
+                    onSeeAll: () => showPlansBottomSheet(
+                      context,
+                      title: 'Active Events',
+                      plans: upcomingJoined,
+                      emptyImagePath: 'assets/images/calander.png',
+                      emptyTitle: 'Noting coming up',
+                      emptyMessage:
+                          'Events you can join will show up here so you never miss out',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  if (planState.status == PlanStatus.loading ||
+                      planState.status == PlanStatus.initial)
+                    _buildUpcomingSkeleton() //  new branch — this section had no loading state before
+                  else if (activeEvents.isEmpty)
+                    const EmptyState(
+                      imagePath: 'assets/images/calander.png',
+                      title: "Nothing coming up",
+                      message:
+                          "Events you can join will show up here so you never miss out",
+                    )
+                  else
+                    ...activeEvents
+                        .take(3)
+                        .map((plan) => PlanListCard(plan: plan)),
+                  const SizedBox(height: 20),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

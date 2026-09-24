@@ -5,6 +5,7 @@ import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_memeber_entity.dart';
 import 'package:kajani/features/report/presentation/pages/report_sheet.dart';
 
@@ -27,9 +28,13 @@ class EventMembersPage extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
-          onPressed: () => AppRoutes.pop(context),
+        leadingWidth: 55,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 13),
+          child: CircleIconButton(
+                  icon: Iconsax.arrow_left_2,
+                  onTap: () => AppRoutes.pop(context)
+                ),
         ),
         title: Text('Members', style: TextStyle(color: context.textPrimary)),
         centerTitle: true,

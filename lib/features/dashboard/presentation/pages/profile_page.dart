@@ -7,6 +7,7 @@ import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
@@ -17,6 +18,7 @@ import 'package:kajani/features/dashboard/presentation/pages/help_support_page.d
 import 'package:kajani/features/dashboard/presentation/view_model/plan_view_model.dart';
 import 'package:kajani/features/dashboard/presentation/widgets/plans_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -75,7 +77,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 AppRoutes.pushAndRemoveUntil(context, const LoginPage());
               }
             },
-            child: const Text('Log out', style: TextStyle(color: Colors.white)),
+            child: Text('Log out', style: TextStyle(color: context.textPrimary)),
           ),
         ],
       ),
@@ -111,10 +113,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               const SizedBox(height: 8),
 
               // ─── Back button ─────────────────────────────
-              IconButton(
-                onPressed: () => AppRoutes.pop(context),
-                padding: EdgeInsets.zero,
-                icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary, size: 22),
+              CircleIconButton(
+                icon: Iconsax.arrow_left_2,
+                onTap: () => AppRoutes.pop(context)
               ),
 
               const SizedBox(height: 8),

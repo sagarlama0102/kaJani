@@ -3,19 +3,18 @@ import 'package:kajani/core/api/api_client.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
 import 'package:kajani/features/notification/data/models/notification_api_model.dart';
 
-
 final notificationRemoteDatasourceProvider =
     Provider<NotificationRemoteDatasource>((ref) {
-  return NotificationRemoteDatasource(
-    apiClient: ref.read(apiClientProvider),
-  );
-});
+      return NotificationRemoteDatasource(
+        apiClient: ref.read(apiClientProvider),
+      );
+    });
 
 class NotificationRemoteDatasource {
   final ApiClient _apiClient;
 
   NotificationRemoteDatasource({required ApiClient apiClient})
-      : _apiClient = apiClient;
+    : _apiClient = apiClient;
 
   // ─── Get Notifications ───────────────────────────────────────────
   Future<List<NotificationApiModel>> getNotifications() async {
@@ -25,7 +24,9 @@ class NotificationRemoteDatasource {
       final List<dynamic> data = response.data['data'];
       return data.map((e) => NotificationApiModel.fromJson(e)).toList();
     }
-    throw Exception(response.data['message'] ?? 'Failed to fetch notifications');
+    throw Exception(
+      response.data['message'] ?? 'Failed to fetch notifications',
+    );
   }
 
   // ─── Mark As Read ────────────────────────────────────────────────
@@ -45,6 +46,17 @@ class NotificationRemoteDatasource {
 
     if (response.data['success'] != true) {
       throw Exception(response.data['message'] ?? 'Failed to mark all as read');
+    }
+  }
+
+  // ─── Clear notifications ────────────────────────────────────────────
+  Future<void> clearAll() async {
+    final response = await _apiClient.delete(ApiEndpoints.clearAllNotifications);
+
+    if (response.data['success'] != true) {
+      throw Exception(
+        response.data['message'] ?? 'Failed to clear all notifications',
+      );
     }
   }
 

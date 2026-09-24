@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/api/api_client.dart';
 import 'package:kajani/core/api/api_endpoints.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
@@ -94,20 +97,23 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff1A1A2E),
+        backgroundColor: context.backgroundColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Permission Required',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: context.textPrimary),
         ),
-        content: const Text(
+        content: Text(
           'Please enable access in settings to add a cover photo.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: context.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () => openAppSettings(),
@@ -146,7 +152,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   void _pickCoverImage() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xff1A1A2E),
+      backgroundColor: context.backgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -159,19 +165,19 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[600],
+                color: context.textSecondary,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
             const SizedBox(height: 8),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.camera_alt_outlined,
-                color: Colors.white,
+                color: context.textPrimary,
               ),
-              title: const Text(
+              title: Text(
                 'Take a Photo',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: context.textPrimary),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -179,10 +185,10 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.image_outlined, color: Colors.white),
-              title: const Text(
+              leading: Icon(Icons.image_outlined, color: context.textPrimary),
+              title: Text(
                 'Choose from Gallery',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: context.textPrimary),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -206,9 +212,9 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
-              surface: Color(0xff1A1A2E),
+              surface: context.surfaceColor,
             ),
           ),
           child: child!,
@@ -230,10 +236,12 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
-              surface: Color(0xff1A1A2E),
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: context.primary, 
+              onPrimary: Colors.white,
+              surface: context.surfaceColor,
+              onSurface: context.textPrimary,
             ),
           ),
           child: child!,
@@ -254,12 +262,15 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       initialTime: TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
-              surface: Color(0xff1A1A2E),
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: context.primary, 
+              onPrimary: Colors.white,
+              surface: context.surfaceColor,
+              onSurface: context.textPrimary,
             ),
           ),
+
           child: child!,
         );
       },
@@ -281,9 +292,9 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: ColorScheme.dark(
               primary: AppColors.primary,
-              surface: Color(0xff1A1A2E),
+              surface: context.backgroundColor,
             ),
           ),
           child: child!,
@@ -340,7 +351,6 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         }
       } catch (e) {
         // if upload fails, create plan without image
-        
       }
     }
     final isEditMode = widget.existingPlan != null;
@@ -390,17 +400,17 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   InputDecoration _inputDecoration({required String hint, Widget? prefixIcon}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+      hintStyle: TextStyle(color: context.textSecondary),
       filled: true,
-      fillColor: const Color(0xff1A1A2E),
+      fillColor: context.backgroundColor,
       prefixIcon: prefixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.textSecondary),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.textSecondary),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -434,7 +444,6 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
     });
 
     return Scaffold(
-      
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -446,15 +455,11 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
               // ─── Header ─────────────────────────────────────────
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () => AppRoutes.pop(context),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.arrow_back_ios,
-                      color: Colors.white,
-                      size: 20,
-                    ),
+                  CircleIconButton(
+                    icon: Iconsax.arrow_left_2,
+                    onTap: () => AppRoutes.pop(context),
                   ),
+                  const SizedBox(width: 16),
                   const Text(
                     'KaJani',
                     style: TextStyle(
@@ -469,10 +474,10 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
               const SizedBox(height: 20),
 
               // ─── Title ──────────────────────────────────────────
-              const Text(
+              Text(
                 'Create New Activity',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: context.textPrimary,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
@@ -480,24 +485,21 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
               const SizedBox(height: 6),
               Text(
                 "Share your plan and discover who's ready to join the journey.",
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: context.textSecondary, fontSize: 13),
               ),
 
               const SizedBox(height: 24),
 
               // ─── Cover Photo ─────────────────────────────────────
               GestureDetector(
-                onTap: _pickCoverImage, 
+                onTap: _pickCoverImage,
                 child: Container(
                   width: double.infinity,
                   height: 140,
                   decoration: BoxDecoration(
-                    color: const Color(0xff1A1A2E),
+                    color: context.backgroundColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: context.textSecondary),
                     image: _coverImage != null
                         ? DecorationImage(
                             image: FileImage(_coverImage!),
@@ -519,9 +521,9 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                 color: Colors.black.withOpacity(0.5),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.edit_outlined,
-                                color: Colors.white,
+                                color: context.textPrimary,
                                 size: 24,
                               ),
                             ),
@@ -547,7 +549,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                             Text(
                               'Add Cover Photo',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
+                                color: context.textSecondary,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -556,7 +558,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                             Text(
                               'Tap to choose from gallery or camera',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.3),
+                                color: context.textSecondary,
                                 fontSize: 11,
                               ),
                             ),
@@ -576,7 +578,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     _fieldLabel('Title'),
                     TextFormField(
                       controller: _titleController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.textSecondary),
                       decoration: _inputDecoration(
                         hint: 'e.g., Sunday Morning Coffee Run',
                       ),
@@ -607,21 +609,23 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                   horizontal: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xff1A1A2E),
+                                  color: context.backgroundColor,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.1),
+                                    color: context.textSecondary,
                                   ),
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
                                     value: _selectedCategory,
-                                    dropdownColor: const Color(0xff1A1A2E),
-                                    style: const TextStyle(color: Colors.white),
+                                    dropdownColor: context.backgroundColor,
+                                    style: TextStyle(
+                                      color: context.textPrimary,
+                                    ),
                                     isExpanded: true,
                                     icon: Icon(
                                       Icons.keyboard_arrow_down,
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: context.textSecondary,
                                     ),
                                     items: _categories.map((cat) {
                                       return DropdownMenuItem<String>(
@@ -657,17 +661,17 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                     vertical: 16,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xff1A1A2E),
+                                    color: context.backgroundColor,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withOpacity(0.1),
+                                      color: context.textSecondary,
                                     ),
                                   ),
                                   child: Row(
                                     children: [
                                       Icon(
                                         Icons.access_time,
-                                        color: Colors.white.withOpacity(0.5),
+                                        color: context.textSecondary,
                                         size: 18,
                                       ),
                                       const SizedBox(width: 8),
@@ -677,8 +681,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                             : _selectedTime,
                                         style: TextStyle(
                                           color: _selectedTime.isEmpty
-                                              ? Colors.white.withOpacity(0.3)
-                                              : Colors.white,
+                                              ? context.textSecondary
+                                              : context.textPrimary,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -705,17 +709,15 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                               vertical: 16,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xff1A1A2E),
+                              color: context.backgroundColor,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.1),
-                              ),
+                              border: Border.all(color: context.textSecondary),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.access_time_filled,
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: context.textSecondary,
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
@@ -725,8 +727,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                       : _selectedEndTime,
                                   style: TextStyle(
                                     color: _selectedEndTime.isEmpty
-                                        ? Colors.white.withOpacity(0.3)
-                                        : Colors.white,
+                                        ? context.textSecondary
+                                        : context.textPrimary,
                                     fontSize: 14,
                                   ),
                                 ),
@@ -749,17 +751,15 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xff1A1A2E),
+                          color: context.backgroundColor,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                          ),
+                          border: Border.all(color: context.textSecondary),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
-                              color: Colors.white.withOpacity(0.5),
+                              color: context.textSecondary,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
@@ -769,8 +769,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                   : _selectedDate,
                               style: TextStyle(
                                 color: _selectedDate.isEmpty
-                                    ? Colors.white.withOpacity(0.3)
-                                    : Colors.white,
+                                    ? context.textSecondary
+                                    : context.textPrimary,
                                 fontSize: 14,
                               ),
                             ),
@@ -792,17 +792,15 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                           vertical: 16,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xff1A1A2E),
+                          color: context.backgroundColor,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                          ),
+                          border: Border.all(color: context.textSecondary),
                         ),
                         child: Row(
                           children: [
                             Icon(
                               Icons.calendar_today_outlined,
-                              color: Colors.white.withOpacity(0.5),
+                              color: context.textSecondary,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
@@ -812,8 +810,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                   : _selectedEndDate,
                               style: TextStyle(
                                 color: _selectedEndDate.isEmpty
-                                    ? Colors.white.withOpacity(0.3)
-                                    : Colors.white,
+                                    ? context.textSecondary
+                                    : context.textPrimary,
                                 fontSize: 14,
                               ),
                             ),
@@ -826,12 +824,12 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     _fieldLabel('Location'),
                     TextFormField(
                       controller: _locationController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.textPrimary),
                       decoration: _inputDecoration(
                         hint: 'Search for a place...',
                         prefixIcon: Icon(
                           Icons.location_on_outlined,
-                          color: Colors.white.withOpacity(0.5),
+                          color: context.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -849,7 +847,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     _fieldLabel('Description'),
                     TextFormField(
                       controller: _descriptionController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.textPrimary),
                       maxLines: 4,
                       decoration: _inputDecoration(
                         hint:
@@ -872,13 +870,13 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     _fieldLabel('Max Members', isOptional: true),
                     TextFormField(
                       controller: _maxMembersController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.textPrimary),
                       keyboardType: TextInputType.number,
                       decoration: _inputDecoration(
                         hint: 'e.g., 20',
                         prefixIcon: Icon(
                           Icons.people_outline,
-                          color: Colors.white.withOpacity(0.5),
+                          color: context.textSecondary,
                           size: 20,
                         ),
                       ),
@@ -893,11 +891,9 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xff1A1A2E),
+                        color: context.backgroundColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
-                        ),
+                        border: Border.all(color: context.textSecondary),
                       ),
                       child: Row(
                         children: [
@@ -911,10 +907,10 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Public Activity',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: context.textPrimary,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -922,7 +918,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                                 Text(
                                   'Anyone can discover and join',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.4),
+                                    color: context.textSecondary,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -957,23 +953,23 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                           elevation: 0,
                         ),
                         child: planState.status == PlanStatus.loading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 22,
                                 height: 22,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                                    context.textPrimary,
                                   ),
                                 ),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     'Create Activity',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: context.textPrimary,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -1005,7 +1001,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: context.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -1014,10 +1010,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
             const SizedBox(width: 6),
             Text(
               '(optional)',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.3),
-                fontSize: 12,
-              ),
+              style: TextStyle(color: context.textSecondary, fontSize: 12),
             ),
           ],
         ],

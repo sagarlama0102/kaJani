@@ -6,6 +6,7 @@ import 'package:kajani/app/theme/app_colors.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/features/auth/presentation/pages/change_password_page.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
@@ -85,9 +86,13 @@ class AccountSettingsPage extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: context.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
-          onPressed: () => AppRoutes.pop(context),
+        leadingWidth: 55,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 13),
+          child: CircleIconButton(
+                  icon: Iconsax.arrow_left_2,
+                  onTap: () => AppRoutes.pop(context)
+                ),
         ),
         title: Text(
           'Account Settings',

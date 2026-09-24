@@ -68,33 +68,33 @@ class _BottomScreenLayoutState extends State<BottomScreenLayout> {
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Iconsax.home_2),
+                    child: Icon(Iconsax.home_2_copy),
                   ),
-                  activeIcon: Icon(Iconsax.home_2_copy),
+                  activeIcon: Icon(Iconsax.home_2),
                   label: "Home",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Iconsax.search_normal),
+                    child: Icon(Iconsax.search_normal_copy),
                   ),
-                  activeIcon: Icon(Iconsax.search_normal_copy),
+                  activeIcon: Icon(Iconsax.search_normal),
                   label: "Explore",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Iconsax.notification_1),
+                    child: Icon(Iconsax.notification_1_copy),
                   ),
-                  activeIcon: Icon(Iconsax.notification_1_copy),
+                  activeIcon: Icon(Iconsax.notification_1),
                   label: "Notification",
                 ),
                 BottomNavigationBarItem(
                   icon: Padding(
                     padding: EdgeInsets.only(bottom: 4),
-                    child: Icon(Iconsax.message_2),
+                    child: Icon(Iconsax.message_2_copy),
                   ),
-                  activeIcon: Icon(Iconsax.message_2_copy),
+                  activeIcon: Icon(Iconsax.message_2),
                   label: "Messages",
                 ),
               ],

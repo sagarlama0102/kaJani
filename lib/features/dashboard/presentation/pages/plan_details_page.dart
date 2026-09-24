@@ -113,7 +113,7 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: Text('Delete', style: TextStyle(color: context.textPrimary)),
           ),
         ],
       ),
@@ -196,7 +196,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
 
     final plan = planState.selectedPlan;
 
-    // ─── Error state — MUST come before the loading/null guard ──────
     if (planState.status == PlanStatus.error) {
       return Scaffold(
         backgroundColor: context.backgroundColor,

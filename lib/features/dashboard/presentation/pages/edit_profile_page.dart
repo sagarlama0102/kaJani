@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 
@@ -188,9 +189,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       appBar: AppBar(
         backgroundColor: context.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
-          onPressed: () => AppRoutes.pop(context),
+        leadingWidth: 55,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 13),
+          child: CircleIconButton(
+                  icon: Iconsax.arrow_left_2,
+                  onTap: () => AppRoutes.pop(context)
+                ),
         ),
         title: Text('Edit Profile', style: TextStyle(color: context.textPrimary)),
         centerTitle: true,

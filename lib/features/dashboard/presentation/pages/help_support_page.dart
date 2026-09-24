@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/core/widgets/circle_icon_button.dart';
 
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
@@ -47,9 +48,13 @@ class HelpSupportPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: context.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Iconsax.arrow_left_2, color: context.textPrimary),
-          onPressed: () => AppRoutes.pop(context),
+        leadingWidth: 55,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 13),
+          child: CircleIconButton(
+                  icon: Iconsax.arrow_left_2,
+                  onTap: () => AppRoutes.pop(context)
+                ),
         ),
         title: Text('Help & Support', style: TextStyle(color: context.textPrimary)),
         centerTitle: true,
