@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout/explore_screen.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
@@ -68,14 +69,14 @@ void main() {
       expect(find.text('No events found'), findsOneWidget);
     });
 
-    testWidgets('shows a loading spinner while plans are loading',
+    testWidgets('shows a loading skeleton while plans are loading',
         (tester) async {
       await tester.pumpWidget(
         makeTestable(const PlanState(status: PlanStatus.loading)),
       );
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(SkeletonShimmer), findsOneWidget);
       expect(find.text('No events found'), findsNothing);
     });
 

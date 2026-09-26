@@ -684,32 +684,6 @@ class _PlanDetailPageState extends ConsumerState<PlanDetailPage> {
       ),
     );
   }
-
-  // Widget _outlinedButton({
-  //   required IconData icon,
-  //   required String label,
-  //   required VoidCallback onTap,
-  // }) {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     child: OutlinedButton.icon(
-  //       onPressed: onTap,
-  //       icon: Icon(icon, color: context.primary, size: 18),
-  //       label: Text(
-  //         label,
-  //         style: TextStyle(color: context.primary, fontWeight: FontWeight.w600),
-  //       ),
-  //       style: OutlinedButton.styleFrom(
-  //         side: BorderSide(color: context.primary),
-  //         padding: const EdgeInsets.symmetric(vertical: 14),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(14),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildCreatorActions(BuildContext context, PlanEntity plan) {
     return SizedBox(
       height: 52,

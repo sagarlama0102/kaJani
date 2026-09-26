@@ -39,6 +39,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   String _selectedEndTime = '';
   String _selectedEndDate = '';
   bool _isPublic = true;
+  bool _isLimited = false;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       _selectedEndTime = plan.endTime ?? '';
       _selectedEndDate = plan.endDate ?? '';
       _isPublic = plan.isPublic;
+      _isLimited = widget.existingPlan!.maxMembers != null;
     }
   }
 
@@ -238,7 +240,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: context.primary, 
+              primary: context.primary,
               onPrimary: Colors.white,
               surface: context.surfaceColor,
               onSurface: context.textPrimary,
@@ -264,7 +266,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: context.primary, 
+              primary: context.primary,
               onPrimary: Colors.white,
               surface: context.surfaceColor,
               onSurface: context.textPrimary,
@@ -867,20 +869,90 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                     const SizedBox(height: 20),
 
                     // ─── Max Members (optional) ────────────────────
-                    _fieldLabel('Max Members', isOptional: true),
-                    TextFormField(
-                      controller: _maxMembersController,
-                      style: TextStyle(color: context.textPrimary),
-                      keyboardType: TextInputType.number,
-                      decoration: _inputDecoration(
-                        hint: 'e.g., 20',
-                        prefixIcon: Icon(
-                          Icons.people_outline,
-                          color: context.textSecondary,
-                          size: 20,
-                        ),
+                    // ─── Member Limit ──────────────────────────────
+                    _fieldLabel('Member Limit'),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.backgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: context.borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Iconsax.people,
+                            color: context.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Limited seats',
+                                  style: TextStyle(
+                                    color: context.textPrimary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  _isLimited
+                                      ? 'Set a maximum number of members'
+                                      : 'Unlimited — anyone can join',
+                                  style: TextStyle(
+                                    color: context.textSecondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: _isLimited,
+                            onChanged: (value) {
+                              setState(() {
+                                _isLimited = value;
+                                if (!value) _maxMembersController.clear();
+                              });
+                            },
+                            activeColor: context.primary,
+                          ),
+                        ],
                       ),
                     ),
+
+                    // Number field only shows when "Limited seats" is ON
+                    if (_isLimited) ...[
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _maxMembersController,
+                        style: TextStyle(color: context.textPrimary),
+                        keyboardType: TextInputType.number,
+                        decoration: _inputDecoration(
+                          hint: 'e.g., 20',
+                          prefixIcon: Icon(
+                            Iconsax.people,
+                            color: context.textSecondary,
+                            size: 20,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (_isLimited) {
+                            if (value == null || value.isEmpty)
+                              return 'Enter a member limit';
+                            final n = int.tryParse(value);
+                            if (n == null || n < 2) return 'Must be at least 2';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
 
                     const SizedBox(height: 20),
 
