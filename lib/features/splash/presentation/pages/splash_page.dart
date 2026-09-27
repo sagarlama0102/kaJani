@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
@@ -116,7 +117,7 @@ Future<void> _navigateToNext() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.primary,
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnimation,
@@ -128,7 +129,7 @@ Future<void> _navigateToNext() async {
               style: TextStyle(
                 fontSize: 42,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: Colors.white,
                 letterSpacing: -1.2,
               )),
             ),

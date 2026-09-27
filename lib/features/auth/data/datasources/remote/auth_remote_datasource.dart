@@ -185,6 +185,7 @@ class AuthRemoteDatasource implements IAuthRemoteDataSource {
 
       throw Exception(response.data['message'] ?? 'Google sign in failed');
     } on GoogleSignInException catch (e) {
+      print('🔴 Google error code: ${e.code}, desc: ${e.description}');
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw const GoogleSignInCancelledException();
       }

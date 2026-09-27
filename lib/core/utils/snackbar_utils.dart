@@ -5,7 +5,7 @@ class SnackbarUtils {
   static void showError(BuildContext context, String message) {
     _showSnackBar(
       context,
-      message,
+      _friendlyMessage(message), //  sanitize technical errors
       accentColor: AppColors.error,
       icon: Icons.error_outline_rounded,
     );
@@ -14,7 +14,7 @@ class SnackbarUtils {
   static void showSuccess(BuildContext context, String message) {
     _showSnackBar(
       context,
-      message,
+      message, // success messages are already user-facing
       accentColor: AppColors.success,
       icon: Icons.check_circle_outline_rounded,
     );
@@ -38,17 +38,47 @@ class SnackbarUtils {
     );
   }
 
+  // ─── Convert technical/backend errors into friendly user messages ──
+  static String _friendlyMessage(String raw) {
+    final lower = raw.toLowerCase();
+
+    if (lower.contains('too many requests') || lower.contains('slow down')) {
+      return "You're doing that too fast — please wait a moment and try again.";
+    }
+    if (lower.contains('socketexception') ||
+        lower.contains('connection') ||
+        lower.contains('failed host lookup') ||
+        lower.contains('network') ||
+        lower.contains('timeout') ||
+        lower.contains('timed out')) {
+      return "Couldn't connect. Please check your internet and try again.";
+    }
+    if (lower.contains('500') ||
+        lower.contains('internal server') ||
+        lower.contains('server error')) {
+      return "Something went wrong on our end. Please try again in a bit.";
+    }
+    if (lower.contains('exception') || lower.contains('error:')) {
+      // catches raw Dart exceptions that shouldn't reach the user
+      return "Something went wrong. Please try again.";
+    }
+
+    // Otherwise it's a genuine user-facing message (e.g. "Invalid credentials",
+    // "Username already in use") — show it as-is.
+    return raw;
+  }
+
   static void _showSnackBar(
     BuildContext context,
     String message, {
     required Color accentColor,
     required IconData icon,
   }) {
-    // 👈 wait for the widget tree to settle before showing
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 👈 maybeOf returns null instead of throwing if the Scaffold is gone
       final messenger = ScaffoldMessenger.maybeOf(context);
       if (messenger == null) return;
+
+      final isDark = Theme.of(context).brightness == Brightness.dark;
 
       messenger.clearSnackBars();
       messenger.showSnackBar(
@@ -58,7 +88,7 @@ class SnackbarUtils {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.15),
+                  color: accentColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: accentColor, size: 20),
@@ -67,25 +97,22 @@ class SnackbarUtils {
               Expanded(
                 child: Text(
                   message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: isDark ? Colors.white : const Color(0xFF1A1A2E),
                     height: 1.3,
                   ),
                 ),
               ),
             ],
           ),
-          backgroundColor: const Color(0xff1A1A2E),
+          backgroundColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
           behavior: SnackBarBehavior.floating,
-          elevation: 0,
+          elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: BorderSide(
-              color: accentColor.withOpacity(0.3),
-              width: 1,
-            ),
+            side: BorderSide(color: accentColor.withValues(alpha: 0.4), width: 1),
           ),
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

@@ -1,4 +1,4 @@
-package com.example.kajani
+package com.kajani.app
 
 import io.flutter.embedding.android.FlutterActivity
 
