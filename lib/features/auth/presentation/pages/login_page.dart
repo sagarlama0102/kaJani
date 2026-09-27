@@ -210,23 +210,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {
-                                // TODO: forgot password
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                "Forgot password?",
-                                style: TextStyle(
-                                  color: context.textSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 8),

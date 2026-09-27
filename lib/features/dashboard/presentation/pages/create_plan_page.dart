@@ -40,6 +40,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
   String _selectedEndDate = '';
   bool _isPublic = true;
   bool _isLimited = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -331,70 +332,75 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
       return;
     }
 
-    String? coverImageUrl;
+    setState(() => _isSubmitting = true);
+    try {
+      String? coverImageUrl;
 
-    // 1. Upload image first if selected
-    if (_coverImage != null) {
-      try {
-        final fileName = _coverImage!.path.split('/').last;
-        final formData = FormData.fromMap({
-          'coverImage': await MultipartFile.fromFile(
-            _coverImage!.path,
-            filename: fileName,
-          ),
-        });
-        // upload directly via api client
-        final uploadResponse = await ref
-            .read(apiClientProvider)
-            .uploadFile(ApiEndpoints.uploadPlanCover, formData: formData);
+      // 1. Upload image first if selected
+      if (_coverImage != null) {
+        try {
+          final fileName = _coverImage!.path.split('/').last;
+          final formData = FormData.fromMap({
+            'coverImage': await MultipartFile.fromFile(
+              _coverImage!.path,
+              filename: fileName,
+            ),
+          });
+          // upload directly via api client
+          final uploadResponse = await ref
+              .read(apiClientProvider)
+              .uploadFile(ApiEndpoints.uploadPlanCover, formData: formData);
 
-        if (uploadResponse.data['success'] == true) {
-          coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
+          if (uploadResponse.data['success'] == true) {
+            coverImageUrl = uploadResponse.data['data']['coverImage'] as String;
+          }
+        } catch (e) {
+          // if upload fails, create plan without image
         }
-      } catch (e) {
-        // if upload fails, create plan without image
       }
-    }
-    final isEditMode = widget.existingPlan != null;
+      final isEditMode = widget.existingPlan != null;
 
-    if (isEditMode) {
-      final updateData = {
-        'title': _titleController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'category': _selectedCategory,
-        'location': _locationController.text.trim(),
-        'date': _selectedDate,
-        'time': _selectedTime,
-        'endTime': _selectedEndTime,
-        'endDate': _selectedEndDate,
-        'isPublic': _isPublic,
-        if (_maxMembersController.text.isNotEmpty)
-          'maxMembers': int.tryParse(_maxMembersController.text),
-        if (coverImageUrl != null)
-          'coverImage': coverImageUrl, // only if changed
-      };
-      await ref
-          .read(planViewModelProvider.notifier)
-          .updatePlan(widget.existingPlan!.planId!, updateData);
-    } else {
-      // 2. Create plan with image URL
-      await ref
-          .read(planViewModelProvider.notifier)
-          .createPlan(
-            title: _titleController.text.trim(),
-            description: _descriptionController.text.trim(),
-            category: _selectedCategory,
-            location: _locationController.text.trim(),
-            date: _selectedDate,
-            time: _selectedTime,
-            endTime: _selectedEndTime,
-            endDate: _selectedEndDate,
-            isPublic: _isPublic,
-            maxMembers: _maxMembersController.text.isEmpty
-                ? null
-                : int.tryParse(_maxMembersController.text),
-            coverImage: coverImageUrl,
-          );
+      if (isEditMode) {
+        final updateData = {
+          'title': _titleController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'category': _selectedCategory,
+          'location': _locationController.text.trim(),
+          'date': _selectedDate,
+          'time': _selectedTime,
+          'endTime': _selectedEndTime,
+          'endDate': _selectedEndDate,
+          'isPublic': _isPublic,
+          if (_maxMembersController.text.isNotEmpty)
+            'maxMembers': int.tryParse(_maxMembersController.text),
+          if (coverImageUrl != null)
+            'coverImage': coverImageUrl, // only if changed
+        };
+        await ref
+            .read(planViewModelProvider.notifier)
+            .updatePlan(widget.existingPlan!.planId!, updateData);
+      } else {
+        // 2. Create plan with image URL
+        await ref
+            .read(planViewModelProvider.notifier)
+            .createPlan(
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              category: _selectedCategory,
+              location: _locationController.text.trim(),
+              date: _selectedDate,
+              time: _selectedTime,
+              endTime: _selectedEndTime,
+              endDate: _selectedEndDate,
+              isPublic: _isPublic,
+              maxMembers: _maxMembersController.text.isEmpty
+                  ? null
+                  : int.tryParse(_maxMembersController.text),
+              coverImage: coverImageUrl,
+            );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -822,6 +828,8 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                       ),
                     ),
 
+                    const SizedBox(height: 20),
+
                     // ─── Location Field ────────────────────────────
                     _fieldLabel('Location'),
                     TextFormField(
@@ -1014,9 +1022,7 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                       width: double.infinity,
                       height: 55,
                       child: ElevatedButton(
-                        onPressed: planState.status == PlanStatus.loading
-                            ? null
-                            : _handleCreate,
+                        onPressed: _isSubmitting ? null : _handleCreate,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
@@ -1024,14 +1030,14 @@ class _CreatePlanPageState extends ConsumerState<CreatePlanPage> {
                           ),
                           elevation: 0,
                         ),
-                        child: planState.status == PlanStatus.loading
+                        child: _isSubmitting
                             ? SizedBox(
                                 width: 22,
                                 height: 22,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    context.textPrimary,
+                                    Colors.white,
                                   ),
                                 ),
                               )
