@@ -1,22 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kajani/features/notification/domain/entities/notification_entity.dart';
+import 'package:kajani/features/notification/domain/usecases/clear_all_notifications_usecase.dart';
 import 'package:kajani/features/notification/domain/usecases/get_notification_usecase.dart';
 import 'package:kajani/features/notification/domain/usecases/get_unread_count_usecase.dart';
 import 'package:kajani/features/notification/domain/usecases/mark_all_read_usecase.dart';
 import 'package:kajani/features/notification/domain/usecases/mark_as_read_usecase.dart';
 import 'package:kajani/features/notification/presentation/state/notification_state.dart';
 
-
 final notificationViewModelProvider =
     NotifierProvider<NotificationViewModel, NotificationState>(
-  () => NotificationViewModel(),
-);
+      () => NotificationViewModel(),
+    );
 
 class NotificationViewModel extends Notifier<NotificationState> {
   late final GetNotificationsUsecase _getNotificationsUsecase;
   late final MarkAsReadUsecase _markAsReadUsecase;
   late final MarkAllReadUsecase _markAllReadUsecase;
   late final GetUnreadCountUsecase _getUnreadCountUsecase;
+  late final ClearAllNotificationsUsecase _clearAllNotificationsUsecase;
 
   @override
   NotificationState build() {
@@ -24,6 +25,9 @@ class NotificationViewModel extends Notifier<NotificationState> {
     _markAsReadUsecase = ref.read(markAsReadUsecaseProvider);
     _markAllReadUsecase = ref.read(markAllReadUsecaseProvider);
     _getUnreadCountUsecase = ref.read(getUnreadCountUsecaseProvider);
+    _clearAllNotificationsUsecase = ref.read(
+      clearAllNotificationsUsecaseProvider,
+    );
     return const NotificationState();
   }
 
@@ -72,7 +76,7 @@ class NotificationViewModel extends Notifier<NotificationState> {
                   planTitle: n.planTitle,
                   planCoverImage: n.planCoverImage,
                   message: n.message,
-                  isRead: true, // 👈 mark as read
+                  isRead: true, //  mark as read
                   createdAt: n.createdAt,
                 )
               : n;
@@ -109,16 +113,29 @@ class NotificationViewModel extends Notifier<NotificationState> {
             planTitle: n.planTitle,
             planCoverImage: n.planCoverImage,
             message: n.message,
-            isRead: true, // 👈 all marked as read
+            isRead: true, //  all marked as read
             createdAt: n.createdAt,
           );
         }).toList();
 
-        state = state.copyWith(
-          notifications: updated,
-          unreadCount: 0,
-        );
+        state = state.copyWith(notifications: updated, unreadCount: 0);
       },
+    );
+  }
+
+  // ─── Clear notifications ────────────────────────────────────────────
+  Future<void> clearAllNotifications() async {
+    final result = await _clearAllNotificationsUsecase();
+    result.fold(
+      (failure) => state = state.copyWith(
+        status: NotificationStatus.error,
+        errorMessage: failure.message,
+      ),
+      (_) => state = state.copyWith(
+        status: NotificationStatus.loaded,
+        notifications: [],
+        unreadCount: 0,
+      ),
     );
   }
 

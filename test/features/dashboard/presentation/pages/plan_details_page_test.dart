@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kajani/core/services/storage/user_session_service.dart';
+import 'package:kajani/core/widgets/skeleton_box.dart';
 import 'package:kajani/features/dashboard/domain/entities/plan_entity.dart';
 import 'package:kajani/features/dashboard/presentation/pages/plan_details_page.dart';
 import 'package:kajani/features/dashboard/presentation/state/plan_state.dart';
@@ -71,10 +72,10 @@ void main() {
       // assert
       expect(find.text('Edit'), findsOneWidget);
       expect(find.text('Delete'), findsOneWidget);
-      expect(find.text('Join Plan'), findsNothing);
+      expect(find.text('Attend Event'), findsNothing);
     });
 
-    testWidgets('shows Join Plan when the current user is not the creator',
+    testWidgets('shows Attend Event when the current user is not the creator',
         (tester) async {
       // arrange — logged in as somebody else
       await tester.pumpWidget(
@@ -89,7 +90,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // assert
-      expect(find.text('Join Plan'), findsOneWidget);
+      expect(find.text('Attend Event'), findsOneWidget);
       expect(find.text('Edit'), findsNothing);
       expect(find.text('Delete'), findsNothing);
     });
@@ -117,7 +118,7 @@ void main() {
       );
     });
 
-    testWidgets('shows a loading spinner while the plan is being fetched',
+    testWidgets('shows a loading skeleton while the plan is being fetched',
         (tester) async {
       // arrange
       await tester.pumpWidget(
@@ -126,7 +127,7 @@ void main() {
       await tester.pump();
 
       // assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(SkeletonShimmer), findsOneWidget);
       expect(find.text('Trek to Shivapuri'), findsNothing);
     });
   });

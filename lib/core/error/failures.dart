@@ -30,3 +30,8 @@ class NetworkFailure extends Failure {
   const NetworkFailure({String message = "No internet connection"})
     : super(message);
 }
+
+class CancelledFailure extends Failure {
+  const CancelledFailure({String message = 'Sign-in was cancelled'})
+      : super(message);
+}

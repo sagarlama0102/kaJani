@@ -84,8 +84,9 @@ class AuthLocalDatasource implements IAuthLocalDatasource {
 
   @override
   Future<AuthHiveModel?> login(String email, String password) {
-    // TODO: implement login
-    throw UnimplementedError();
+    // password intentionally unused — offline login trusts the cached
+  // identity rather than re-verifying credentials on-device.
+  return _hiveService.loginUser(email);
   }
 
   @override

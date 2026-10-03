@@ -10,7 +10,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Kajani',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.dark, // 👈 dark mode by default
+      themeMode: ThemeMode.system,
       theme: _lightTheme(),
       darkTheme: _darkTheme(),
       home: const SplashPage(),
@@ -20,6 +20,7 @@ class App extends StatelessWidget {
   ThemeData _lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
+      fontFamily: 'Pally',
       scaffoldBackgroundColor: AppColors.background,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.light(
@@ -38,17 +39,33 @@ class App extends StatelessWidget {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 0,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputFill,
+
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
+
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+
+        hintStyle: const TextStyle(color: AppColors.textTertiary),
+
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
       ),
     );
   }
@@ -56,6 +73,7 @@ class App extends StatelessWidget {
   ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
+      fontFamily: 'Pally',
       scaffoldBackgroundColor: AppColors.darkBackground,
       primaryColor: AppColors.primary,
       colorScheme: const ColorScheme.dark(
@@ -75,11 +93,10 @@ class App extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      // ✅ Purple buttons with white text in dark mode
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,   // purple
-          foregroundColor: Colors.white,         // white text
+          backgroundColor: AppColors.primary, // purple
+          foregroundColor: Colors.white, // white text
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -96,9 +113,7 @@ class App extends StatelessWidget {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryLight,
-        ),
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryLight),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -126,12 +141,8 @@ class App extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.darkDivider,
-      ),
-      iconTheme: const IconThemeData(
-        color: AppColors.darkTextSecondary,
-      ),
+      dividerTheme: const DividerThemeData(color: AppColors.darkDivider),
+      iconTheme: const IconThemeData(color: AppColors.darkTextSecondary),
     );
   }
 }

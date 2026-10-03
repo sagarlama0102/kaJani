@@ -53,6 +53,8 @@ GoogleService-Info.plist
 android/local.properties
 android/.gradle/
 
+android/key.properties
+
 # iOS
 ios/Pods/
 ios/.symlinks/

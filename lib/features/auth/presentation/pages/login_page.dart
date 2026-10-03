@@ -1,12 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:kajani/app/routes/app_routes.dart';
 import 'package:kajani/app/theme/app_colors.dart';
+import 'package:kajani/app/theme/theme_extensions.dart';
+import 'package:kajani/core/services/storage/user_session_service.dart';
 import 'package:kajani/core/utils/snackbar_utils.dart';
+import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
 import 'package:kajani/features/auth/presentation/pages/signup_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -28,9 +34,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) SnackbarUtils.showError(context, 'Could not open the link');
+    }
+  }
+
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(authViewModelProvider.notifier).login(
+      await ref
+          .read(authViewModelProvider.notifier)
+          .login(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
@@ -55,19 +70,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return InputDecoration(
       labelText: label,
       hintText: hint,
-      labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+      labelStyle: TextStyle(color: context.textSecondary, fontSize: 13),
+      hintStyle: TextStyle(color: context.textTertiary),
       filled: true,
-      fillColor: const Color(0xff1A1A2E),
-      prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.5), size: 20),
+      fillColor: context.inputFillColor,
+      prefixIcon: Icon(icon, color: context.textSecondary, size: 20),
       suffixIcon: suffixIcon,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.borderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: context.borderColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -89,11 +104,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final authState = ref.watch(authViewModelProvider);
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-        print('🔔 State changed: ${next.status}');
       if (next.status == AuthStatus.authenticated) {
-        AppRoutes.pushReplacement(context, const BottomScreenLayout());
-      } else if (next.status == AuthStatus.error &&
-          next.errorMessage != null) {
+        final isOnboarded = ref.read(userSessionServiceProvider).isOnboarded();
+        if (!isOnboarded) {
+          AppRoutes.pushReplacement(context, const NameCapturePage());
+        } else {
+          AppRoutes.pushReplacement(context, const BottomScreenLayout());
+        }
+      } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         SnackbarUtils.showError(context, next.errorMessage!);
         ref.read(authViewModelProvider.notifier).resetError();
       }
@@ -101,7 +119,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xff0F0F0F),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -123,13 +141,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // ─── Title ──────────────────────────────────
-                  const Text(
+                  Text(
                     "Welcome back",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.textPrimary,
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
@@ -142,7 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     "Enter your credentials to access your account",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: context.textSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -158,7 +176,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Text(
                           "Email Address",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                            color: context.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
@@ -169,11 +187,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: context.textSecondary),
                           decoration: _inputDecoration(
                             label: '',
                             hint: 'name@example.com',
-                            icon: Icons.email_outlined,
+                            icon: Iconsax.sms,
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -195,27 +213,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             Text(
                               "Password",
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: context.textSecondary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // TODO: forgot password
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                "Forgot password?",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
-                                  fontSize: 13,
-                                ),
                               ),
                             ),
                           ],
@@ -226,17 +226,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: context.textSecondary),
                           decoration: _inputDecoration(
                             label: '',
                             hint: '••••••••',
-                            icon: Icons.lock_outline,
+                            icon: Iconsax.lock,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: Colors.white.withOpacity(0.5),
+                                    ? Iconsax.eye_copy
+                                    : Iconsax.eye_slash,
+                                color: context.textSecondary,
                                 size: 20,
                               ),
                               onPressed: () => setState(
@@ -248,8 +248,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your password';
                             }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
+                            if (value.length < 8) {
+                              return 'Password must be at least 8 characters';
                             }
                             return null;
                           },
@@ -278,8 +278,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     height: 22,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
                                         Colors.white,
                                       ),
                                     ),
@@ -297,9 +296,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       ),
                                       SizedBox(width: 8),
                                       Icon(
-                                        Icons.arrow_forward,
+                                        Iconsax.arrow_right,
                                         color: Colors.white,
-                                        size: 18,
+                                        size: 20,
                                       ),
                                     ],
                                   ),
@@ -312,9 +311,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: Divider(
-                                color: Colors.white.withOpacity(0.1),
-                              ),
+                              child: Divider(color: context.textSecondary),
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
@@ -323,15 +320,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               child: Text(
                                 "OR",
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.4),
+                                  color: context.textSecondary,
                                   fontSize: 12,
                                 ),
                               ),
                             ),
                             Expanded(
-                              child: Divider(
-                                color: Colors.white.withOpacity(0.1),
-                              ),
+                              child: Divider(color: context.textSecondary),
                             ),
                           ],
                         ),
@@ -347,13 +342,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ? null
                                 : _handleGoogleSignIn,
                             style: OutlinedButton.styleFrom(
+                              backgroundColor: context.isDarkMode
+                                  ? AppColors.darkSurface
+                                  : Colors.white,
                               side: BorderSide(
-                                color: Colors.white.withOpacity(0.15),
+                                color: context.isDarkMode
+                                    ? AppColors.darkBorder
+                                    : AppColors.border,
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              backgroundColor: const Color(0xff1A1A2E),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -363,10 +362,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   height: 20,
                                 ),
                                 const SizedBox(width: 12),
-                                const Text(
+                                Text(
                                   "Continue with Google",
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: context.textSecondary,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -385,7 +384,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             Text(
                               "Don't have an account? ",
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.5),
+                                color: context.textSecondary,
                                 fontSize: 14,
                               ),
                             ),
@@ -394,19 +393,64 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               style: TextButton.styleFrom(
                                 padding: EdgeInsets.zero,
                                 minimumSize: Size.zero,
-                                tapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Create an account',
                                 style: TextStyle(
                                   color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w500,
                                   fontSize: 14,
                                 ),
                               ),
                             ),
                           ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ─── Terms consent line ──────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              style: TextStyle(
+                                color: context.textSecondary,
+                                fontSize: 12,
+                                height: 1.4,
+                              ),
+                              children: [
+                                const TextSpan(
+                                  text: 'By continuing, you agree to our ',
+                                ),
+                                TextSpan(
+                                  text: 'Terms of Service',
+                                  style: TextStyle(
+                                    color: context.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => _openUrl(
+                                      'https://sagarlama0102.github.io/Kajani-legal/terms.html',
+                                    ),
+                                ),
+                                const TextSpan(text: ' and '),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: TextStyle(
+                                    color: context.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => _openUrl(
+                                      'https://sagarlama0102.github.io/Kajani-legal/',
+                                    ),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 24),

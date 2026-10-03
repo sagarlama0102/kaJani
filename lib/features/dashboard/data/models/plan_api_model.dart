@@ -40,46 +40,89 @@ class PlanApiModel {
     this.memberDetails
   });
 
+  // factory PlanApiModel.fromJson(Map<String, dynamic> json) {
+  //   return PlanApiModel(
+  //     planId: json['_id'] as String? ?? json['id'] as String?,
+  //     title: json['title'] as String,
+  //     description: json['description'] as String,
+  //     category: json['category'] as String,
+  //     coverImage: json['coverImage'] as String?,
+  //     location: json['location'] as String,
+  //     date: json['date'] as String,
+  //     time: json['time'] as String,
+  //     endTime: json['endTime'] as String?,
+  //     endDate: json['endDate'] as String?,
+  //     status: json['status'] as String,
+  //     isPublic: json['isPublic'] as bool? ?? true,
+  //     maxMembers: json['maxMembers'] as int?,
+
+  //     creatorId: json['creator'] is Map
+  //         ? (json['creator'] as Map<String, dynamic>)['_id'] as String?
+  //         : json['creator'] as String?,
+
+  //     members: (json['members'] as List<dynamic>?)
+  //         ?.map((e) => e is Map ? e['_id'] as String : e as String)
+  //         .toList(),
+  //     memberDetails: (json['members'] as List<dynamic>?)
+  //         ?.where((e) => e is Map) // only when populated
+  //         .map(
+  //           (e) => PlanMemberEntity(
+  //             id: e['_id'] as String,
+  //             firstName: e['firstName'] as String? ?? '',
+  //             lastName: e['lastName'] as String? ?? '',
+  //             profilePicture: e['profilePicture'] as String?,
+  //             username: e['username'] as String? ?? '',
+  //           ),
+  //         )
+  //         .toList(),
+  //     savedBy: (json['savedBy'] as List<dynamic>?)
+  //         ?.map((e) => e is Map ? e['_id'] as String : e as String)
+  //         .toList(),
+  //   );
+  // }
+
   factory PlanApiModel.fromJson(Map<String, dynamic> json) {
-    return PlanApiModel(
-      planId: json['_id'] as String? ?? json['id'] as String?,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      category: json['category'] as String,
-      coverImage: json['coverImage'] as String?,
-      location: json['location'] as String,
-      date: json['date'] as String,
-      time: json['time'] as String,
-      endTime: json['endTime'] as String?,
-      endDate: json['endDate'] as String?,
-      status: json['status'] as String,
-      isPublic: json['isPublic'] as bool? ?? true,
-      maxMembers: json['maxMembers'] as int?,
+  return PlanApiModel(
+    planId: json['_id'] as String? ?? json['id'] as String?,
+    title: json['title'] as String? ?? '',                  
+    description: json['description'] as String? ?? '',        
+    category: json['category'] as String? ?? 'social',         
+    coverImage: json['coverImage'] as String?,
+    location: json['location'] as String? ?? '',             
+    date: json['date'] as String? ?? '',                   
+    time: json['time'] as String? ?? '',                     
+    endTime: json['endTime'] as String?,
+    endDate: json['endDate'] as String?,
+    status: json['status'] as String? ?? 'upcoming',          
+    isPublic: json['isPublic'] as bool? ?? true,
+    maxMembers: json['maxMembers'] as int?,
 
-      creatorId: json['creator'] is Map
-          ? (json['creator'] as Map<String, dynamic>)['_id'] as String?
-          : json['creator'] as String?,
+    creatorId: json['creator'] is Map
+        ? (json['creator'] as Map<String, dynamic>)['_id'] as String?
+        : json['creator'] as String?,
 
-      members: (json['members'] as List<dynamic>?)
-          ?.map((e) => e is Map ? e['_id'] as String : e as String)
-          .toList(),
-      memberDetails: (json['members'] as List<dynamic>?)
-          ?.where((e) => e is Map) // only when populated
-          .map(
-            (e) => PlanMemberEntity(
-              id: e['_id'] as String,
-              firstName: e['firstName'] as String? ?? '',
-              lastName: e['lastName'] as String? ?? '',
-              profilePicture: e['profilePicture'] as String?,
-              username: e['username'] as String? ?? '',
-            ),
-          )
-          .toList(),
-      savedBy: (json['savedBy'] as List<dynamic>?)
-          ?.map((e) => e is Map ? e['_id'] as String : e as String)
-          .toList(),
-    );
-  }
+    members: (json['members'] as List<dynamic>?)
+        ?.map((e) => e is Map ? e['_id'] as String? ?? '' : e as String)  
+        .toList(),
+
+    memberDetails: (json['members'] as List<dynamic>?)
+        ?.where((e) => e is Map && e['_id'] != null)  
+        .map(
+          (e) => PlanMemberEntity(
+            id: e['_id'] as String,                    
+            firstName: e['firstName'] as String? ?? '',
+            lastName: e['lastName'] as String? ?? '',
+            profilePicture: e['profilePicture'] as String?,
+            username: e['username'] as String? ?? '',
+          ),
+        )
+        .toList(),
+
+    savedBy: (json['savedBy'] as List<dynamic>?)
+        ?.map((e) => e is Map ? e['_id'] as String? ?? '' : e as String)  
+        .toList(),
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {

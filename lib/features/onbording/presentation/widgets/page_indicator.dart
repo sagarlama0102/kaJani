@@ -9,7 +9,7 @@ class PageIndicator extends StatelessWidget {
     super.key,
     required this.itemCount,
     required this.currentPage,
-    this.activeColor = const Color(0xff142725), // Your project's dark green
+    this.activeColor = const Color(0xFF3F61D2),
   });
 
   @override
@@ -20,13 +20,14 @@ class PageIndicator extends StatelessWidget {
         itemCount,
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           margin: const EdgeInsets.symmetric(horizontal: 6),
-          height: 12,
-          // If active, it's wider (24), else it's a circle (12)
-          width: currentPage == index ? 24 : 12, 
+          height: 7,
+
+          width: currentPage == index ? 24 : 7,
           decoration: BoxDecoration(
-            color: currentPage == index ? activeColor : Colors.grey[400],
-            borderRadius: BorderRadius.circular(6),
+            color: currentPage == index ? activeColor : Color(0xFFE1E4EA),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       ),

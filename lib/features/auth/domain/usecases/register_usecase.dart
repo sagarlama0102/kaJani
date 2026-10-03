@@ -9,30 +9,21 @@ import 'package:kajani/features/auth/domain/repositories/auth_repository.dart';
 import 'package:kajani/features/user/domain/entities/user_entity.dart';
 
 class RegisterUsecaseParams extends Equatable {
-  final String firstName;
-  final String lastName;
+
   final String email;
-  final String username;
   final String password;
-  final String? phoneNumber;
+
 
   const RegisterUsecaseParams({
-    required this.firstName,
-    required this.lastName,
     required this.email,
-    required this.username,
     required this.password,
-    this.phoneNumber,
   });
 
   @override
   List<Object?> get props => [
-        firstName,
-        lastName,
+
         email,
-        username,
         password,
-        phoneNumber,
       ];
 }
 
@@ -56,11 +47,7 @@ class RegisterUsecase
     );
 
     final userEntity = UserEntity(
-      firstName: params.firstName,
-      lastName: params.lastName,
       email: params.email,
-      username: params.username,
-      phoneNumber: params.phoneNumber,
     );
 
     return _authRepository.register(authEntity, userEntity);

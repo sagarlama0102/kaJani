@@ -8,9 +8,7 @@ import 'package:kajani/features/notification/data/models/notification_api_model.
 import 'package:kajani/features/notification/domain/entities/notification_entity.dart';
 import 'package:kajani/features/notification/domain/repositories/notification_repository.dart';
 
-
-final notificationRepositoryProvider =
-    Provider<INotificationRepository>((ref) {
+final notificationRepositoryProvider = Provider<INotificationRepository>((ref) {
   return NotificationRepositoryImpl(
     remoteDatasource: ref.read(notificationRemoteDatasourceProvider),
     networkInfo: ref.read(networkInfoProvider),
@@ -24,8 +22,8 @@ class NotificationRepositoryImpl implements INotificationRepository {
   NotificationRepositoryImpl({
     required NotificationRemoteDatasource remoteDatasource,
     required NetworkInfo networkInfo,
-  })  : _remoteDatasource = remoteDatasource,
-        _networkInfo = networkInfo;
+  }) : _remoteDatasource = remoteDatasource,
+       _networkInfo = networkInfo;
 
   // ─── Get Notifications ───────────────────────────────────────────
   @override
@@ -35,10 +33,13 @@ class NotificationRepositoryImpl implements INotificationRepository {
         final models = await _remoteDatasource.getNotifications();
         return Right(NotificationApiModel.toEntityList(models));
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? 'Failed to fetch notifications',
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message:
+                e.response?.data['message'] ?? 'Failed to fetch notifications',
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
@@ -55,10 +56,12 @@ class NotificationRepositoryImpl implements INotificationRepository {
         await _remoteDatasource.markAsRead(notificationId);
         return const Right(null);
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? 'Failed to mark as read',
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message: e.response?.data['message'] ?? 'Failed to mark as read',
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
@@ -75,10 +78,13 @@ class NotificationRepositoryImpl implements INotificationRepository {
         await _remoteDatasource.markAllAsRead();
         return const Right(null);
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? 'Failed to mark all as read',
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message:
+                e.response?.data['message'] ?? 'Failed to mark all as read',
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }
@@ -95,10 +101,35 @@ class NotificationRepositoryImpl implements INotificationRepository {
         final count = await _remoteDatasource.getUnreadCount();
         return Right(count);
       } on DioException catch (e) {
-        return Left(ApiFailure(
-          message: e.response?.data['message'] ?? 'Failed to get unread count',
-          statusCode: e.response?.statusCode,
-        ));
+        return Left(
+          ApiFailure(
+            message:
+                e.response?.data['message'] ?? 'Failed to get unread count',
+            statusCode: e.response?.statusCode,
+          ),
+        );
+      } catch (e) {
+        return Left(ApiFailure(message: e.toString()));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'No internet connection'));
+    }
+  }
+
+  @override
+  Future<Either<Failure,void>> clearAll() async {
+    if (await _networkInfo.isConnected) {
+      try {
+        await _remoteDatasource.clearAll();
+        return const Right(null);
+      } on DioException catch (e) {
+        return Left(
+          ApiFailure(
+            message:
+                e.response?.data['message'] ?? 'Failed to clear notifications',
+            statusCode: e.response?.statusCode,
+          ),
+        );
       } catch (e) {
         return Left(ApiFailure(message: e.toString()));
       }

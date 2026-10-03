@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrlOnly = 'http://192.168.101.14:4000';
+  static const String baseUrlOnly = 'https://kajani-backend.onrender.com';
 
   static const String baseUrl = '$baseUrlOnly/api/';
 
@@ -11,8 +11,10 @@ class ApiEndpoints {
   static const String register = 'auth/register';
   static const String login = 'auth/login';
   static const String googleSignIn = 'auth/google';
+  static const String completeProfile = 'auth/complete-profile';
   static const String whoAmI = 'auth/whoami';
   static const String userUploadPhoto = 'auth/update-profile';
+  static const String deleteAccount = 'auth/account';
 
   static const String getAllPlans = 'plans';
   static const String myPlans = 'plans/user/my-plans';
@@ -25,4 +27,7 @@ class ApiEndpoints {
   static const String unreadCount = 'notifications/unread-count';
   static const String markAllRead = 'notifications/mark-all-read';
   static const String clearAllNotifications = 'notifications/clear-all';
+  static const String changePassword = 'auth/change-password';
+
+  static const String reports = 'reports';
 }

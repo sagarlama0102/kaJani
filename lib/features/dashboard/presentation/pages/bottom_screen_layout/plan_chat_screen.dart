@@ -98,7 +98,7 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xff0F0F0F),
+      
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Container(
@@ -126,7 +126,9 @@ class _ChatScreenState extends ConsumerState<PlanChatScreen> {
                     borderRadius: BorderRadius.circular(22),
                     child: widget.planCoverImage != null
                         ? Image.network(
-                            '${ApiEndpoints.baseUrlOnly}${widget.planCoverImage}',
+                          widget.planCoverImage!.startsWith('http')
+                          ?widget.planCoverImage!
+                            :'${ApiEndpoints.baseUrlOnly}${widget.planCoverImage}',
                             width: 44,
                             height: 44,
                             fit: BoxFit.cover,

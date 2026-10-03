@@ -45,6 +45,16 @@ dependencies:
   path_provider: ^2.1.2
   path: ^1.9.0
 
+  #icons
+  iconsax_flutter: ^1.0.1
+
+  #skeleton loading
+  shimmer: ^3.0.0
+
+  #url_launcher
+  url_launcher: ^6.3.0
+  
+
   
   # Networking
   dio: ^5.4.1
@@ -103,6 +113,11 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   mocktail: ^1.0.4
 
+  # Icon
+  flutter_launcher_icons: ^0.14.1
+
+  flutter_native_splash: ^2.4.1
+
   # Code Generation
   build_runner: ^2.4.8
   json_serializable: ^6.8.0
@@ -122,6 +137,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/icon/
+
     
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -136,12 +153,13 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
 fonts:
-    - family: OpenSans Bold
+    - family: Pally
       fonts:
-        - asset: assets/fonts/opensans_bold.ttf
-    - family: OpenSans Regular
-      fonts:
-        - asset: assets/fonts/opensans_regular.ttf
+        - asset: assets/fonts/neco_regular.otf
+          weight: 400
+        - asset: assets/fonts/pally_medium.otf
+          weight: 700
+    
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
@@ -152,3 +170,18 @@ fonts:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/kajani_icon.png"
+  adaptive_icon_background: "#3F61D2"
+  adaptive_icon_foreground: "assets/icon/kajani_icon.png"
+
+
+flutter_native_splash:
+  color: "#3F61D2"
+  image: assets/icon/kajani_icon.png
+  android_12:
+    color: "#3F61D2"
+    image: assets/icon/kajani_icon.png
