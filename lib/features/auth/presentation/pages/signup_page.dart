@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -10,6 +11,7 @@ import 'package:kajani/features/auth/presentation/pages/name_capture_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
@@ -42,6 +44,13 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
+    }
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) SnackbarUtils.showError(context, 'Could not open the link');
     }
   }
 
@@ -260,17 +269,64 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       ),
 
                       const SizedBox(height: 32),
+                      // ─── Terms consent line ──────────────────────
+                      Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: TextStyle(
+                              color: context.textSecondary,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                            children: [
+                              const TextSpan(
+                                text: 'By continuing, you agree to our ',
+                              ),
+                              TextSpan(
+                                text: 'Terms of Service',
+                                style: TextStyle(
+                                  color: context.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => _openUrl(
+                                    'https://sagarlama0102.github.io/Kajani-legal/terms.html',
+                                  ),
+                              ),
+                              const TextSpan(text: ' and '),
+                              TextSpan(
+                                text: 'Privacy Policy',
+                                style: TextStyle(
+                                  color: context.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => _openUrl(
+                                    'https://sagarlama0102.github.io/Kajani-legal/',
+                                  ),
+                              ),
+                              const TextSpan(text: '.'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
                       // ─── Create Account Button ───────────────
                       SizedBox(
                         height: 55,
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: authState.status == AuthStatus.loading
+                          onPressed:
+                              authState.status == AuthStatus.loading 
+                                  
                               ? null
                               : _handleSignup,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
+                            disabledBackgroundColor: AppColors.primary
+                                .withValues(alpha: 0.4),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
@@ -340,7 +396,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         height: 55,
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: authState.status == AuthStatus.loading
+                          onPressed:
+                              authState.status == AuthStatus.loading
+                                  
                               ? null
                               : _handleGoogleSignIn,
                           style: OutlinedButton.styleFrom(

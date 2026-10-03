@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -11,6 +12,7 @@ import 'package:kajani/features/auth/presentation/pages/signup_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:kajani/features/dashboard/presentation/pages/bottom_screen_layout.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -30,6 +32,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) SnackbarUtils.showError(context, 'Could not open the link');
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -97,12 +106,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AuthStatus.authenticated) {
         final isOnboarded = ref.read(userSessionServiceProvider).isOnboarded();
-        if(!isOnboarded){
+        if (!isOnboarded) {
           AppRoutes.pushReplacement(context, const NameCapturePage());
-        }else{
+        } else {
           AppRoutes.pushReplacement(context, const BottomScreenLayout());
         }
-        
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
         SnackbarUtils.showError(context, next.errorMessage!);
         ref.read(authViewModelProvider.notifier).resetError();
@@ -397,6 +405,52 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             ),
                           ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // ─── Terms consent line ──────────────────────
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              style: TextStyle(
+                                color: context.textSecondary,
+                                fontSize: 12,
+                                height: 1.4,
+                              ),
+                              children: [
+                                const TextSpan(
+                                  text: 'By continuing, you agree to our ',
+                                ),
+                                TextSpan(
+                                  text: 'Terms of Service',
+                                  style: TextStyle(
+                                    color: context.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => _openUrl(
+                                      'https://sagarlama0102.github.io/Kajani-legal/terms.html',
+                                    ),
+                                ),
+                                const TextSpan(text: ' and '),
+                                TextSpan(
+                                  text: 'Privacy Policy',
+                                  style: TextStyle(
+                                    color: context.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () => _openUrl(
+                                      'https://sagarlama0102.github.io/Kajani-legal/',
+                                    ),
+                                ),
+                                const TextSpan(text: '.'),
+                              ],
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 24),

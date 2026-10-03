@@ -10,6 +10,7 @@ import 'package:kajani/core/widgets/circle_icon_button.dart';
 import 'package:kajani/features/auth/presentation/pages/change_password_page.dart';
 import 'package:kajani/features/auth/presentation/pages/login_page.dart';
 import 'package:kajani/features/auth/presentation/state/auth_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:kajani/features/auth/presentation/view_model/auth_view_model.dart';
 
 class AccountSettingsPage extends ConsumerWidget {
@@ -62,6 +63,15 @@ class AccountSettingsPage extends ConsumerWidget {
       await ref.read(authViewModelProvider.notifier).deleteAccount();
     }
   }
+
+  Future<void> _openUrl(BuildContext context, String url) async {
+  final uri = Uri.parse(url);
+  if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    if (context.mounted) {
+      SnackbarUtils.showError(context, 'Could not open the link');
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -185,6 +195,25 @@ class AccountSettingsPage extends ConsumerWidget {
                 ),
               ),
 
+              const SizedBox(height: 32),
+
+// ─── Legal ───────────────────────────────────
+_sectionLabel(context, 'LEGAL'),
+const SizedBox(height: 10),
+_legalRow(
+  context,
+  icon: Iconsax.shield_tick,
+  title: 'Privacy Policy',
+  onTap: () => _openUrl(context, 'https://sagarlama0102.github.io/Kajani-legal/'),
+),
+const SizedBox(height: 10),
+_legalRow(
+  context,
+  icon: Iconsax.document_text,
+  title: 'Terms of Service',
+  onTap: () => _openUrl(context, 'https://sagarlama0102.github.io/Kajani-legal/terms.html'),
+),
+
               // ─── Danger Zone ─────────────────────────────
               _sectionLabel(context, 'DANGER ZONE'),
               const SizedBox(height: 10),
@@ -298,4 +327,46 @@ class AccountSettingsPage extends ConsumerWidget {
   Widget _rowDivider(BuildContext context) {
     return Divider(height: 1, color: context.borderColor, indent: 44);
   }
+
+  Widget _legalRow(BuildContext context, {
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: context.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: context.primary, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: context.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Icon(Iconsax.arrow_right_3, color: context.textTertiary, size: 16),
+        ],
+      ),
+    ),
+  );
+}
 }
